@@ -88,6 +88,15 @@
   .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;}
   .footnote{margin-top:26px;font-size:12px;color:var(--muted);line-height:1.6;}
 
+  .tabs-nav{display:flex;gap:4px;border-bottom:2px solid var(--ink);margin-bottom:22px;}
+  .tab-btn{font-family:inherit;font-size:14px;font-weight:500;padding:10px 20px;border:none;background:none;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;}
+  .tab-btn:hover{color:var(--ink);}
+  .tab-btn.active{color:var(--ink);border-bottom-color:var(--accent);}
+  .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px;}
+  .dash-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);padding:18px 20px;}
+  .dash-card h3{font-family:'Source Serif 4',serif;font-weight:600;font-size:15px;color:var(--ink);margin:0 0 14px;}
+  @media (max-width:900px){ .dash-grid{grid-template-columns:1fr;} }
+
   .xf-btn{font-weight:400;min-width:120px;text-align:left;position:relative;}
   .xf-panel{
     display:none;
@@ -148,6 +157,12 @@
     </div>
   </div>
 
+  <div class="tabs-nav">
+    <button type="button" class="tab-btn active" data-view="lancamentos">Lançamentos</button>
+    <button type="button" class="tab-btn" data-view="dashboard">Dashboard</button>
+  </div>
+
+  <div id="viewLancamentos">
   <div class="stats">
     <div class="stat warn">
       <span class="num" id="statPendentes">0</span>
@@ -269,9 +284,32 @@
     </div>
   </div>
 
-  <p class="footnote">
+  <p class="footnote-inline hint" style="margin:0 0 20px;">
     Os dados ficam salvos apenas neste dispositivo/conta. Notas com Status "Cancelada" no Qive não entram na importação.
   </p>
+  </div>
+
+  <div id="viewDashboard" style="display:none;">
+    <div class="stats" id="dashKpis"></div>
+    <div class="dash-grid">
+      <div class="dash-card">
+        <h3>Evolução mensal (valor)</h3>
+        <canvas id="chartMensal" height="220"></canvas>
+      </div>
+      <div class="dash-card">
+        <h3>Status das notas</h3>
+        <canvas id="chartStatus" height="220"></canvas>
+      </div>
+      <div class="dash-card">
+        <h3>Top 10 fornecedores (valor)</h3>
+        <canvas id="chartFornecedores" height="260"></canvas>
+      </div>
+      <div class="dash-card">
+        <h3>Distribuição por CFOP</h3>
+        <canvas id="chartCfop" height="260"></canvas>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="overlay" id="entryOverlay">
@@ -466,6 +504,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <script>
 // ======================= CONFIGURAÇÃO DO FIREBASE =======================
 // Cole aqui o firebaseConfig copiado do painel do Firebase
@@ -500,7 +539,7 @@ document.getElementById('btnEntrarGoogle').addEventListener('click', ()=>{
   const provider = new firebase.auth.GoogleAuthProvider();
   authFirebase.signInWithPopup(provider).catch(err=>{
     console.error('Falha no login', err);
-    document.getElementById('loginErro').textContent = 'Não consegui fazer login. Tente novamente.';
+    document.getElementById('loginErro').textContent = `Não consegui fazer login (${err.code || err.message}).`;
   });
 });
 
@@ -1082,6 +1121,8 @@ function render(){
     : `${filtered.length} nota(s) exibida(s) — ${analisadas} já analisada(s) (${fmtMoney(valorAnalisadas)}), ${filtered.length - analisadas} ainda não.`;
 
   renderResumoCfop(filtered);
+
+  if(abaAtiva === 'dashboard') renderDashboard();
 }
 
 let resumoCfopOrdem = { campo: 'qtd', dir: -1 };
@@ -2227,6 +2268,112 @@ async function migrarAnexosAntigosSeNecessario(){
   }catch(e){
     console.error('Falha na migração de anexos', e);
   }
+}
+
+// ---- Abas (Lançamentos / Dashboard) ----
+let abaAtiva = 'lancamentos';
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    abaAtiva = btn.dataset.view;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.getElementById('viewLancamentos').style.display = abaAtiva === 'lancamentos' ? 'block' : 'none';
+    document.getElementById('viewDashboard').style.display = abaAtiva === 'dashboard' ? 'block' : 'none';
+    if(abaAtiva === 'dashboard') renderDashboard();
+  });
+});
+
+// ---- Dashboard: KPIs e gráficos ----
+const CORES_DASH = ['#2E5266','#2F6E5E','#B5762A','#A23E3E','#6B7280','#8E6BAF','#3A8FA3','#C1502E','#4B7A3E','#9A6A4B'];
+let chartsInstancias = {};
+
+function destruirGrafico(id){
+  if(chartsInstancias[id]){ chartsInstancias[id].destroy(); delete chartsInstancias[id]; }
+}
+
+function renderDashboard(){
+  const naoCanceladas = entries; // todas as notas de entrada (não há status "cancelada" neste app)
+
+  // KPIs
+  const pendentes = naoCanceladas.filter(e => !e.lancada);
+  const valorPendente = pendentes.reduce((s,e)=> s + (Number(e.valor)||0), 0);
+  const lancadas = naoCanceladas.filter(e => e.lancada);
+  const valorLancado = lancadas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
+  const valorTotal = naoCanceladas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
+  const contabilizadas = naoCanceladas.filter(e => e.contabilizada).length;
+
+  document.getElementById('dashKpis').innerHTML = `
+    <div class="stat warn"><span class="num">${fmtMoney(valorPendente)}</span><span class="label">Valor pendente de lançamento (${pendentes.length} nota(s))</span></div>
+    <div class="stat ok"><span class="num">${fmtMoney(valorLancado)}</span><span class="label">Valor já lançado (${lancadas.length} nota(s))</span></div>
+    <div class="stat"><span class="num">${fmtMoney(valorTotal)}</span><span class="label">Valor total (${naoCanceladas.length} nota(s))</span></div>
+    <div class="stat"><span class="num">${contabilizadas}</span><span class="label">Notas já contabilizadas no razão</span></div>
+  `;
+
+  // Gráfico 1: evolução mensal (valor total por mês de emissão)
+  const porMes = new Map();
+  naoCanceladas.forEach(e=>{
+    if(!e.dataEmissao) return;
+    const chave = e.dataEmissao.slice(0,7); // AAAA-MM
+    porMes.set(chave, (porMes.get(chave)||0) + (Number(e.valor)||0));
+  });
+  const mesesOrdenados = [...porMes.keys()].sort();
+  destruirGrafico('mensal');
+  chartsInstancias['mensal'] = new Chart(document.getElementById('chartMensal'), {
+    type: 'bar',
+    data: {
+      labels: mesesOrdenados.map(m=>{ const [a,mm]=m.split('-'); return `${MES_LABELS[mm]?.slice(0,3)||mm}/${a.slice(2)}`; }),
+      datasets: [{ label: 'Valor total', data: mesesOrdenados.map(m=>porMes.get(m)), backgroundColor: '#2E5266', borderRadius: 3 }]
+    },
+    options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ ticks:{ callback:(v)=>fmtMoney(v) } } } }
+  });
+
+  // Gráfico 2: status (pendente / lançada não contabilizada / contabilizada)
+  const stLancadaNaoCont = naoCanceladas.filter(e => e.lancada && !e.contabilizada).length;
+  const stContabilizada = contabilizadas;
+  const stPendente = pendentes.length;
+  destruirGrafico('status');
+  chartsInstancias['status'] = new Chart(document.getElementById('chartStatus'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Pendente', 'Lançada (não contabilizada)', 'Contabilizada'],
+      datasets: [{ data: [stPendente, stLancadaNaoCont, stContabilizada], backgroundColor: ['#B5762A','#6B7280','#2F6E5E'] }]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+  });
+
+  // Gráfico 3: top 10 fornecedores por valor
+  const porFornecedor = new Map();
+  naoCanceladas.forEach(e=>{
+    porFornecedor.set(e.emitente, (porFornecedor.get(e.emitente)||0) + (Number(e.valor)||0));
+  });
+  const topFornecedores = [...porFornecedor.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
+  destruirGrafico('fornecedores');
+  chartsInstancias['fornecedores'] = new Chart(document.getElementById('chartFornecedores'), {
+    type: 'bar',
+    data: {
+      labels: topFornecedores.map(([nome])=> nome.length > 28 ? nome.slice(0,26)+'…' : nome),
+      datasets: [{ label: 'Valor', data: topFornecedores.map(([,v])=>v), backgroundColor: '#2F6E5E', borderRadius: 3 }]
+    },
+    options: { indexAxis:'y', responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ callback:(v)=>fmtMoney(v) } } } }
+  });
+
+  // Gráfico 4: distribuição por CFOP (top 8 + outros)
+  const porCfop = new Map();
+  naoCanceladas.forEach(e=>{
+    const c = (e.cfop||'').toString().trim() || '(sem CFOP)';
+    porCfop.set(c, (porCfop.get(c)||0) + (Number(e.valor)||0));
+  });
+  const cfopsOrdenados = [...porCfop.entries()].sort((a,b)=>b[1]-a[1]);
+  const top8 = cfopsOrdenados.slice(0,8);
+  const outros = cfopsOrdenados.slice(8).reduce((s,[,v])=>s+v, 0);
+  const labelsCfop = top8.map(([c])=>c);
+  const valoresCfop = top8.map(([,v])=>v);
+  if(outros > 0){ labelsCfop.push('Outros'); valoresCfop.push(outros); }
+  destruirGrafico('cfop');
+  chartsInstancias['cfop'] = new Chart(document.getElementById('chartCfop'), {
+    type: 'doughnut',
+    data: { labels: labelsCfop, datasets: [{ data: valoresCfop, backgroundColor: CORES_DASH }] },
+    options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+  });
 }
 
 populateSelects();
