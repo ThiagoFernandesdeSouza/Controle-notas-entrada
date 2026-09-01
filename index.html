@@ -308,6 +308,10 @@
         <h3>Distribuição por CFOP</h3>
         <canvas id="chartCfop" height="260"></canvas>
       </div>
+      <div class="dash-card">
+        <h3>Top 10 contas contábeis (valor conciliado)</h3>
+        <canvas id="chartContaContabil" height="260"></canvas>
+      </div>
     </div>
   </div>
 </div>
@@ -2383,6 +2387,24 @@ function renderDashboard(){
     type: 'doughnut',
     data: { labels: labelsCfop, datasets: [{ data: valoresCfop, backgroundColor: CORES_DASH }] },
     options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+  });
+
+  // Gráfico 5: top 10 contas contábeis por valor (só notas já conciliadas com o razão)
+  const porConta = new Map();
+  naoCanceladas.forEach(e=>{
+    if(!e.contabilizada) return;
+    const nome = e.contaContabilNome || e.contaContabil || '(sem conta)';
+    porConta.set(nome, (porConta.get(nome)||0) + (Number(e.valor)||0));
+  });
+  const topContas = [...porConta.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
+  destruirGrafico('contaContabil');
+  chartsInstancias['contaContabil'] = new Chart(document.getElementById('chartContaContabil'), {
+    type: 'bar',
+    data: {
+      labels: topContas.map(([nome])=> nome.length > 30 ? nome.slice(0,28)+'…' : nome),
+      datasets: [{ label: 'Valor', data: topContas.map(([,v])=>v), backgroundColor: '#8E6BAF', borderRadius: 3 }]
+    },
+    options: { indexAxis:'y', responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ callback:(v)=>fmtMoney(v) } } } }
   });
 }
 
