@@ -504,7 +504,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 // ======================= CONFIGURAÇÃO DO FIREBASE =======================
 // Cole aqui o firebaseConfig copiado do painel do Firebase
@@ -2307,6 +2307,16 @@ function renderDashboard(){
     <div class="stat"><span class="num">${fmtMoney(valorTotal)}</span><span class="label">Valor total (${naoCanceladas.length} nota(s))</span></div>
     <div class="stat"><span class="num">${contabilizadas}</span><span class="label">Notas já contabilizadas no razão</span></div>
   `;
+
+  if(typeof Chart === 'undefined'){
+    document.querySelectorAll('.dash-card canvas').forEach(c=>{
+      if(!c.dataset.avisoMostrado){
+        c.insertAdjacentHTML('afterend', '<p class="hint">Não consegui carregar a biblioteca de gráficos (verifique sua conexão e recarregue a página).</p>');
+        c.dataset.avisoMostrado = '1';
+      }
+    });
+    return;
+  }
 
   // Gráfico 1: evolução mensal (valor total por mês de emissão)
   const porMes = new Map();
