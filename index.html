@@ -192,8 +192,8 @@
   </div>
 
   <div class="tabs-nav">
-    <button type="button" class="tab-btn active" data-view="lancamentos">Lançamentos</button>
-    <button type="button" class="tab-btn" data-view="dashboard">Dashboard</button>
+    <button type="button" class="tab-btn active" data-ne-view="lancamentos">Lançamentos</button>
+    <button type="button" class="tab-btn" data-ne-view="dashboard">Dashboard</button>
   </div>
 
   <div id="viewLancamentos">
@@ -1638,7 +1638,7 @@ function campoOpcoes(campo){
 }
 
 function atualizarBotoesFiltro(){
-  document.querySelectorAll('.xf-btn').forEach(btn=>{
+  document.getElementById('moduloNotasEntrada').querySelectorAll('.xf-btn').forEach(btn=>{
     const campo = btn.dataset.campo;
     const sel = filtroSelecionados[campo];
     btn.textContent = (sel.size === 0 ? 'Todos' : `${CAMPO_LABELS[campo]} (${sel.size})`) + ' ▾';
@@ -1698,7 +1698,7 @@ function abrirPainelFiltro(campo, btnEl){
   painel.classList.add('open');
 }
 
-document.querySelectorAll('.xf-btn').forEach(btn=>{
+document.getElementById('moduloNotasEntrada').querySelectorAll('.xf-btn').forEach(btn=>{
   btn.addEventListener('click', (ev)=>{
     ev.stopPropagation();
     if(xfCampoAtual === btn.dataset.campo){ fecharPainelFiltro(); return; }
@@ -3117,10 +3117,10 @@ async function migrarAnexosAntigosSeNecessario(){
 
 // ---- Abas (Lançamentos / Dashboard) ----
 let abaAtiva = 'lancamentos';
-document.querySelectorAll('.tab-btn').forEach(btn=>{
+document.querySelectorAll('[data-ne-view]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    abaAtiva = btn.dataset.view;
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+    abaAtiva = btn.dataset.neView;
+    document.querySelectorAll('[data-ne-view]').forEach(b => b.classList.toggle('active', b === btn));
     document.getElementById('viewLancamentos').style.display = abaAtiva === 'lancamentos' ? 'block' : 'none';
     document.getElementById('viewDashboard').style.display = abaAtiva === 'dashboard' ? 'block' : 'none';
     if(abaAtiva === 'dashboard') renderDashboard();
@@ -3154,7 +3154,7 @@ function renderDashboard(){
   `;
 
   if(typeof Chart === 'undefined'){
-    document.querySelectorAll('.dash-card canvas').forEach(c=>{
+    document.getElementById('moduloNotasEntrada').querySelectorAll('.dash-card canvas').forEach(c=>{
       if(!c.dataset.avisoMostrado){
         c.insertAdjacentHTML('afterend', '<p class="hint">Não consegui carregar a biblioteca de gráficos (verifique sua conexão e recarregue a página).</p>');
         c.dataset.avisoMostrado = '1';
