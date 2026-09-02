@@ -494,6 +494,14 @@
         <h3>Distribuição por empreendimento</h3>
         <canvas id="nfts_chartEmpreendimento" height="260"></canvas>
       </div>
+      <div class="dash-card">
+        <h3>Retenção de ISS</h3>
+        <canvas id="nfts_chartRetencao" height="220"></canvas>
+      </div>
+      <div class="dash-card">
+        <h3>Canceladas por mês</h3>
+        <canvas id="nfts_chartCanceladas" height="220"></canvas>
+      </div>
     </div>
   </div>
 </div>
@@ -4521,12 +4529,14 @@ function renderNftsDashboard(){
   const valorEmitido = emitidas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
   const valorTotal = naoCanceladas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
   const atrasadas = pendentes.filter(e => getSituacao(e).key === 'atrasada').length;
+  const canceladasKpi = entries.filter(e => e.status === 'cancelada').length;
 
   document.getElementById('nfts_dashKpis').innerHTML = `
     <div class="stat warn"><span class="num">${fmtMoney(valorPendente)}</span><span class="label">Valor pendente de emissão (${pendentes.length} nota(s))</span></div>
     <div class="stat ok"><span class="num">${fmtMoney(valorEmitido)}</span><span class="label">Valor já emitido (${emitidas.length} nota(s))</span></div>
     <div class="stat"><span class="num">${fmtMoney(valorTotal)}</span><span class="label">Valor total (${naoCanceladas.length} nota(s))</span></div>
     <div class="stat critico"><span class="num">${atrasadas}</span><span class="label">Notas atrasadas</span></div>
+    <div class="stat"><span class="num">${canceladasKpi}</span><span class="label">Notas canceladas</span></div>
   `;
 
   if(typeof Chart === 'undefined'){
@@ -4558,16 +4568,17 @@ function renderNftsDashboard(){
     options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ ticks:{ callback:(v)=>fmtMoney(v) } } } }
   });
 
-  // Gráfico 2: status (atrasada/crítico/vence em breve/em dia/emitida)
+  // Gráfico 2: status (atrasada/crítico/vence em breve/em dia/emitida/cancelada)
   const contagemSituacao = { atrasada:0, critico:0, soon:0, ok:0, emitida:0 };
   naoCanceladas.forEach(e=>{ const s = getSituacao(e).key; if(contagemSituacao[s] !== undefined) contagemSituacao[s]++; });
+  const canceladasTotal = entries.filter(e => e.status === 'cancelada').length;
   destruirGraficoNfts('status');
   chartsInstanciasNfts['status'] = new Chart(document.getElementById('nfts_chartStatus'), {
     type: 'doughnut',
     data: {
-      labels: ['Atrasada', 'Crítico (≤3 dias)', 'Vence em breve', 'Em dia', 'Emitida'],
-      datasets: [{ data: [contagemSituacao.atrasada, contagemSituacao.critico, contagemSituacao.soon, contagemSituacao.ok, contagemSituacao.emitida],
-        backgroundColor: ['#A23E3E','#C1502E','#B5762A','#6B7280','#2F6E5E'] }]
+      labels: ['Atrasada', 'Crítico (≤3 dias)', 'Vence em breve', 'Em dia', 'Emitida', 'Cancelada'],
+      datasets: [{ data: [contagemSituacao.atrasada, contagemSituacao.critico, contagemSituacao.soon, contagemSituacao.ok, contagemSituacao.emitida, canceladasTotal],
+        backgroundColor: ['#A23E3E','#C1502E','#B5762A','#6B7280','#2F6E5E','#8B8C7E'] }]
     },
     options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
   });
@@ -4600,6 +4611,37 @@ function renderNftsDashboard(){
     type: 'doughnut',
     data: { labels: empOrdenados.map(([nome])=>nome), datasets: [{ data: empOrdenados.map(([,v])=>v), backgroundColor: CORES_DASH_NFTS }] },
     options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+  });
+
+  // Gráfico 5: retenção de ISS (valor, entre as não canceladas)
+  const comRetencao = naoCanceladas.filter(e => e.retencao === 'sim').reduce((s,e)=> s + (Number(e.valor)||0), 0);
+  const semRetencao = naoCanceladas.filter(e => e.retencao === 'nao').reduce((s,e)=> s + (Number(e.valor)||0), 0);
+  destruirGraficoNfts('retencao');
+  chartsInstanciasNfts['retencao'] = new Chart(document.getElementById('nfts_chartRetencao'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Com retenção de ISS', 'Sem retenção de ISS'],
+      datasets: [{ data: [comRetencao, semRetencao], backgroundColor: ['#2E5266','#B5762A'] }]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+  });
+
+  // Gráfico 6: canceladas por mês (quantidade, por mês de prestação do serviço)
+  const canceladasPorMes = new Map();
+  entries.filter(e => e.status === 'cancelada').forEach(e=>{
+    if(!e.dataServico) return;
+    const chave = e.dataServico.slice(0,7);
+    canceladasPorMes.set(chave, (canceladasPorMes.get(chave)||0) + 1);
+  });
+  const mesesCanceladasOrdenados = [...canceladasPorMes.keys()].sort();
+  destruirGraficoNfts('canceladas');
+  chartsInstanciasNfts['canceladas'] = new Chart(document.getElementById('nfts_chartCanceladas'), {
+    type: 'bar',
+    data: {
+      labels: mesesCanceladasOrdenados.map(m=>{ const [a,mm]=m.split('-'); return `${MESES_ABREV[mm]||mm}/${a.slice(2)}`; }),
+      datasets: [{ label: 'Canceladas', data: mesesCanceladasOrdenados.map(m=>canceladasPorMes.get(m)), backgroundColor: '#8B8C7E', borderRadius: 3 }]
+    },
+    options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ ticks:{ precision:0 } } } }
   });
 }
 
