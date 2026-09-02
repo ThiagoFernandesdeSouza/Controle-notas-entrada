@@ -164,6 +164,7 @@
 
   <div class="modulos-nav">
     <button type="button" class="modulo-btn active" data-modulo="notasEntrada">Notas de Entrada</button>
+    <button type="button" class="modulo-btn" data-modulo="servicosTomados">Serviços Tomados</button>
     <button type="button" class="modulo-btn" data-modulo="nfts">NFTS</button>
   </div>
 
@@ -348,6 +349,191 @@
     </div>
   </div>
 </div>
+  </div>
+
+  <div id="moduloServicosTomados" style="display:none;">
+  <div id="st_moduloNotasEntrada">
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <h1>Controle de Serviços Tomados</h1>
+      <p>NFS-e de serviços tomados — acompanhamento de lançamento no Omie</p>
+      <p class="hint" id="st_usuarioLogado" style="margin-top:4px;"></p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn secondary" id="st_btnSair">Sair</button>
+      <button class="btn secondary" id="st_btnImportar">Importar do Qive</button>
+      <button class="btn secondary" id="st_btnImportarPdfs">Importar PDFs (ZIP)</button>
+      <button class="btn secondary" id="st_btnLimparAnexos">Remover todos os anexos</button>
+      <button class="btn secondary" id="st_btnRemoverDuplicados">Remover duplicados</button>
+      <button class="btn secondary" id="st_btnConciliarRazao">Conciliar razão (OneFlow)</button>
+      <button class="btn secondary" id="st_btnApagarConciliacao" style="border-color:var(--red);color:var(--red);">Apagar conciliação</button>
+      <button class="btn secondary" id="st_btnApagarImportacaoQive" style="border-color:var(--red);color:var(--red);">Apagar importação Qive</button>
+      <button class="btn secondary" id="st_btnApagarTudo" style="border-color:var(--red);color:var(--red);">Apagar todos os lançamentos</button>
+      <button class="btn" id="st_btnNovo">Novo lançamento</button>
+    </div>
+  </div>
+
+  <div class="tabs-nav">
+    <button type="button" class="tab-btn active" data-st-view="lancamentos">Lançamentos</button>
+    <button type="button" class="tab-btn" data-st-view="dashboard">Dashboard</button>
+  </div>
+
+  <div id="st_viewLancamentos">
+  <div class="stats">
+    <div class="stat warn">
+      <span class="num" id="st_statPendentes">0</span>
+      <span class="label">Ainda não lançadas no Omie</span>
+    </div>
+    <div class="stat" style="border-left-color:var(--red);">
+      <span class="num" id="st_statNaoContabilizadas">0</span>
+      <span class="label">Lançadas mas não contabilizadas no razão</span>
+    </div>
+    <div class="stat ok">
+      <span class="num" id="st_statLancadasMes">0</span>
+      <span class="label">Lançadas este mês</span>
+    </div>
+    <div class="stat">
+      <span class="num" id="st_statTotal">0</span>
+      <span class="label">Total de notas</span>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="field">
+      <label>Emitente</label>
+      <button type="button" class="btn secondary xf-btn" data-campo="emitente">Todos ▾</button>
+    </div>
+    <div class="field">
+      <label>Destinatário</label>
+      <button type="button" class="btn secondary xf-btn" data-campo="destinatario">Todos ▾</button>
+    </div>
+    <div class="field">
+      <label>Status</label>
+      <button type="button" class="btn secondary xf-btn" data-campo="status">Todos ▾</button>
+    </div>
+    <div class="field">
+      <label>Analisado</label>
+      <button type="button" class="btn secondary xf-btn" data-campo="analisado">Todos ▾</button>
+    </div>
+    <div class="field">
+      <label>Mês</label>
+      <button type="button" class="btn secondary xf-btn" data-campo="mes">Todos ▾</button>
+    </div>
+    <div class="field">
+      <label>Ano</label>
+      <button type="button" class="btn secondary xf-btn" data-campo="ano">Todos ▾</button>
+    </div>
+    <div class="field">
+      <label for="st_fNumero">Número do documento</label>
+      <input type="text" id="st_fNumero" placeholder="Buscar por número" style="max-width:150px;">
+    </div>
+    <div class="field">
+      <label>Código de Serviço</label>
+      <button type="button" class="btn secondary xf-btn" data-campo="codigoServico">Todos ▾</button>
+    </div>
+    <div class="field">
+      <label>Conta débito</label>
+      <button type="button" class="btn secondary xf-btn" data-campo="contaDebito">Todos ▾</button>
+    </div>
+    <div class="field">
+      <label for="st_fValorDe">Valor de (R$)</label>
+      <input type="number" step="0.01" id="st_fValorDe" style="max-width:130px;">
+    </div>
+    <div class="field">
+      <label for="st_fValorAte">Até (R$)</label>
+      <input type="number" step="0.01" id="st_fValorAte" style="max-width:130px;">
+    </div>
+    <div class="field">
+      <label for="st_fDataDe">Emissão de</label>
+      <input type="date" id="st_fDataDe">
+    </div>
+    <div class="field">
+      <label for="st_fDataAte">Até</label>
+      <input type="date" id="st_fDataAte">
+    </div>
+    <div class="field">
+      <label for="st_fOrdenar">Ordenar por</label>
+      <select id="st_fOrdenar">
+        <option value="emissao_desc">Emissão (mais recente)</option>
+        <option value="emissao_asc">Emissão (mais antiga)</option>
+        <option value="valor_desc">Valor (maior primeiro)</option>
+        <option value="valor_asc">Valor (menor primeiro)</option>
+        <option value="fornecedor_asc">Fornecedor (A-Z)</option>
+        <option value="fornecedor_desc">Fornecedor (Z-A)</option>
+      </select>
+    </div>
+    <button class="btn secondary" id="st_btnMarcarFiltradas">Marcar filtradas como lançadas</button>
+    <button class="btn secondary" id="st_btnLimpar">Limpar filtros</button>
+  </div>
+
+  <p class="hint" id="st_resumoAnalise" style="margin-bottom:8px;"></p>
+
+  <details open style="margin-bottom:14px;">
+    <summary style="cursor:pointer;color:var(--ink);font-size:13.5px;font-weight:500;padding:4px 0;">Resumo por Código de Serviço</summary>
+    <div class="preview-wrap" style="margin-top:8px;max-height:260px;">
+      <table id="st_resumoCodigoServicoTable"></table>
+    </div>
+  </details>
+
+  <div id="st_tableContainer"></div>
+
+  <div id="st_xfPanel" class="xf-panel">
+    <input type="text" id="st_xfSearch" placeholder="Pesquisar">
+    <label class="xf-item xf-selectall"><input type="checkbox" id="st_xfSelectAll" checked> (Selecionar Tudo)</label>
+    <div id="st_xfList" class="xf-list"></div>
+    <div class="xf-actions">
+      <button type="button" class="btn small" id="st_xfOk">OK</button>
+      <button type="button" class="btn secondary small" id="st_xfCancel">Cancelar</button>
+    </div>
+  </div>
+
+  <div id="st_cfPanel" class="xf-panel">
+    <div class="xf-sort-opt" data-dir="1">↑ Classificar do Menor para o Maior</div>
+    <div class="xf-sort-opt" data-dir="-1">↓ Classificar do Maior para o Menor</div>
+    <div class="xf-sep"></div>
+    <input type="text" id="st_cfSearch" placeholder="Pesquisar">
+    <label class="xf-item xf-selectall"><input type="checkbox" id="st_cfSelectAll" checked> (Selecionar Tudo)</label>
+    <div id="st_cfList" class="xf-list"></div>
+    <div class="xf-actions">
+      <button type="button" class="btn small" id="st_cfOk">OK</button>
+      <button type="button" class="btn secondary small" id="st_cfCancel">Cancelar</button>
+    </div>
+  </div>
+
+  <p class="footnote-inline hint" style="margin:0 0 20px;">
+    Os dados ficam salvos apenas neste dispositivo/conta. Notas com Status "Cancelada" no Qive não entram na importação.
+  </p>
+  </div>
+
+  <div id="st_viewDashboard" style="display:none;">
+    <div class="stats" id="st_dashKpis"></div>
+    <div class="dash-grid">
+      <div class="dash-card">
+        <h3>Evolução mensal (valor)</h3>
+        <canvas id="st_chartMensal" height="220"></canvas>
+      </div>
+      <div class="dash-card">
+        <h3>Status das notas</h3>
+        <canvas id="st_chartStatus" height="220"></canvas>
+      </div>
+      <div class="dash-card">
+        <h3>Top 10 fornecedores (valor)</h3>
+        <canvas id="st_chartFornecedores" height="260"></canvas>
+      </div>
+      <div class="dash-card">
+        <h3>Distribuição por Código de Serviço</h3>
+        <canvas id="st_chartCodigoServico" height="260"></canvas>
+      </div>
+      <div class="dash-card">
+        <h3>Top 10 contas contábeis (valor conciliado)</h3>
+        <canvas id="st_chartContaContabil" height="260"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+  </div>
   </div>
 
   <div id="moduloNfts" style="display:none;">
@@ -952,6 +1138,193 @@
     <div class="modal-actions">
       <button type="button" class="btn secondary" id="btnRazaoCancelar">Cancelar</button>
       <button type="button" class="btn" id="btnRazaoConfirmar" style="display:none;">Marcar como contabilizadas</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="st_entryOverlay">
+  <div class="modal">
+    <h2 id="st_modalTitle">Novo lançamento</h2>
+    <form id="st_entryForm">
+      <input type="hidden" id="st_entryId">
+      <div class="map-grid">
+        <div style="grid-column:1/-1;">
+          <label for="st_emitente">Emitente</label>
+          <input type="text" id="st_emitente" placeholder="Razão social do emitente">
+          <p class="error-text" id="st_err-emitente"></p>
+        </div>
+        <div>
+          <label for="st_cnpjEmitente">CNPJ do emitente</label>
+          <input type="text" id="st_cnpjEmitente" placeholder="00.000.000/0000-00">
+        </div>
+        <div>
+          <label for="st_numero">Número da nota</label>
+          <input type="text" id="st_numero">
+        </div>
+        <div>
+          <label for="st_destinatario">Destinatário</label>
+          <select id="st_destinatario">
+            <option>Viva Gestão — Matriz (SP)</option>
+            <option>Viva Gestão — Filial (SC)</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div>
+          <label for="st_dataEmissao">Data de emissão</label>
+          <input type="date" id="st_dataEmissao">
+          <p class="error-text" id="st_err-dataEmissao"></p>
+        </div>
+        <div>
+          <label for="st_valor">Valor (R$)</label>
+          <input type="number" step="0.01" min="0" id="st_valor">
+        </div>
+        <div>
+          <label for="st_codigoServico">Código de Serviço</label>
+          <input type="text" id="st_codigoServico">
+          <p class="hint" id="st_codigoServicoHint"></p>
+        </div>
+        <div style="grid-column:1/-1;">
+          <label>Já foi lançada no Omie?</label>
+          <div style="display:flex;gap:16px;padding-top:4px;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13.5px;margin:0;"><input type="radio" name="lancada" value="nao" checked> Não</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13.5px;margin:0;"><input type="radio" name="lancada" value="sim"> Sim</label>
+          </div>
+        </div>
+        <div id="st_dataLancamentoWrap" style="display:none;">
+          <label for="st_dataLancamento">Data do lançamento</label>
+          <input type="date" id="st_dataLancamento">
+        </div>
+        <div style="grid-column:1/-1;">
+          <label for="st_observacoes">Observações</label>
+          <textarea id="st_observacoes" rows="2" placeholder="Opcional"></textarea>
+        </div>
+        <div style="grid-column:1/-1;">
+          <label for="st_anexoPdf">Anexar nota em PDF</label>
+          <input type="file" id="st_anexoPdf" accept="application/pdf">
+          <p class="hint" id="st_anexoStatus">Nenhum arquivo anexado.</p>
+          <button type="button" class="btn secondary small" id="st_btnRemoverAnexo" style="display:none;">Remover anexo</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" id="st_btnCancelar">Cancelar</button>
+        <button type="submit" class="btn" id="st_btnSalvar">Salvar lançamento</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="overlay" id="st_importOverlay">
+  <div class="modal" style="max-width:760px;">
+    <h2>Importar notas de entrada da Qive</h2>
+    <div class="steps">
+      <div class="step-dot active" id="st_stepDot1">1. Arquivo</div>
+      <div class="step-dot" id="st_stepDot2">2. Colunas</div>
+      <div class="step-dot" id="st_stepDot3">3. Conferir e importar</div>
+    </div>
+
+    <div id="st_importStep1">
+      <p class="hint" style="margin-bottom:12px;">
+        Na Qive, exporte o relatório de <strong style="font-weight:500;">NF-e</strong> (notas recebidas) e envie o arquivo aqui.
+      </p>
+      <div class="dropzone" id="st_dropzone">
+        <strong>Clique para escolher o arquivo</strong>
+        Aceita .csv, .xlsx ou .xls exportado da Qive
+      </div>
+      <input type="file" id="st_fileInput" accept=".csv,.xlsx,.xls" style="display:none;">
+      <p class="error-text" id="st_err-file"></p>
+    </div>
+
+    <div id="st_importStep2" style="display:none;">
+      <p class="hint" style="margin-bottom:12px;">Confirme quais colunas do arquivo correspondem a cada campo.</p>
+      <div class="map-grid">
+        <div><label for="st_mapEmitente">Emitente</label><select id="st_mapEmitente"></select></div>
+        <div><label for="st_mapCnpjEmitente">CNPJ do emitente</label><select id="st_mapCnpjEmitente"></select></div>
+        <div><label for="st_mapNumero">Número da nota</label><select id="st_mapNumero"></select></div>
+        <div><label for="st_mapChave">Chave de acesso (evita duplicar)</label><select id="st_mapChave"></select></div>
+        <div><label for="st_mapCnpjDest">CNPJ do destinatário (identifica matriz/filial)</label><select id="st_mapCnpjDest"></select></div>
+        <div><label for="st_mapData">Data de emissão</label><select id="st_mapData"></select></div>
+        <div><label for="st_mapValor">Valor</label><select id="st_mapValor"></select></div>
+        <div><label for="st_mapCodigoServico">Código de Serviço</label><select id="st_mapCodigoServico"></select></div>
+        <div><label for="st_mapStatus">Status (para ignorar canceladas)</label><select id="st_mapStatus"></select></div>
+      </div>
+      <button class="btn secondary" id="st_btnGerarPreview">Avançar</button>
+    </div>
+
+    <div id="st_importStep3" style="display:none;">
+      <div class="import-summary" id="st_importSummary"></div>
+      <div class="preview-wrap">
+        <table id="st_previewTable"></table>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="st_btnImportCancelar">Cancelar</button>
+      <button type="button" class="btn" id="st_btnImportConfirmar" style="display:none;">Importar lançamentos</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="st_pdfZipOverlay">
+  <div class="modal" style="max-width:760px;">
+    <h2>Anexar PDFs em lote (ZIP da Qive)</h2>
+    <div id="st_pdfZipStep1">
+      <p class="hint" style="margin-bottom:12px;">
+        Na Qive, selecione as notas e use Baixar e compartilhar → Baixar PDFs em ZIP. Envie esse ZIP aqui — o app
+        tenta casar cada PDF com o lançamento correspondente pelo número da nota e CNPJ do emitente.
+      </p>
+      <div class="dropzone" id="st_pdfZipDropzone">
+        <strong>Clique para escolher o arquivo ZIP</strong>
+        Aceita .zip com os PDFs exportados da Qive
+      </div>
+      <input type="file" id="st_pdfZipInput" accept=".zip" style="display:none;">
+      <p class="error-text" id="st_err-pdfzip"></p>
+    </div>
+    <div id="st_pdfZipStep2" style="display:none;">
+      <div class="import-summary" id="st_pdfZipSummary"></div>
+      <div class="preview-wrap">
+        <table id="st_pdfZipPreviewTable"></table>
+      </div>
+      <p class="hint" id="st_pdfZipSemAnexoTitulo" style="margin:16px 0 6px;"></p>
+      <div class="preview-wrap">
+        <table id="st_pdfZipSemAnexoTable"></table>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="st_btnPdfZipCancelar">Cancelar</button>
+      <button type="button" class="btn" id="st_btnPdfZipConfirmar" style="display:none;">Anexar PDFs casados</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="st_razaoOverlay">
+  <div class="modal" style="max-width:760px;">
+    <h2>Conciliar com o razão contábil (OneFlow)</h2>
+    <div id="st_razaoStep1">
+      <p class="hint" style="margin-bottom:12px;">
+        Envie o razão contábil exportado do OneFlow (Livro Diário). O app lê o histórico de cada lançamento
+        (padrão "...referente a nota fiscal NÚMERO de FORNECEDOR") e casa com as notas de entrada já
+        cadastradas, marcando como <strong style="font-weight:500;">Contabilizada</strong> as que encontrar.
+      </p>
+      <div class="dropzone" id="st_razaoDropzone">
+        <strong>Clique para escolher a planilha</strong>
+        Aceita .xlsx exportado do OneFlow
+      </div>
+      <input type="file" id="st_razaoFileInput" accept=".xlsx,.xls" style="display:none;">
+      <p class="error-text" id="st_err-razao"></p>
+    </div>
+    <div id="st_razaoStep2" style="display:none;">
+      <div class="import-summary" id="st_razaoSummary"></div>
+      <div class="preview-wrap">
+        <table id="st_razaoPreviewTable"></table>
+      </div>
+      <p class="hint" id="st_razaoSemMatchTitulo" style="margin:16px 0 6px;"></p>
+      <div class="preview-wrap">
+        <table id="st_razaoSemMatchTable"></table>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="st_btnRazaoCancelar">Cancelar</button>
+      <button type="button" class="btn" id="st_btnRazaoConfirmar" style="display:none;">Marcar como contabilizadas</button>
     </div>
   </div>
 </div>
@@ -2881,12 +3254,13 @@ loadEntries();
 loadImportedKeys();
 migrarDadosAntigosSeNecessario().then(() => migrarAnexosAntigosSeNecessario());
 
-// ---- Troca entre módulos (Notas de Entrada / NFTS) ----
+// ---- Troca entre módulos (Notas de Entrada / Serviços Tomados / NFTS) ----
 document.querySelectorAll('.modulo-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.modulo-btn').forEach(b => b.classList.toggle('active', b === btn));
     const modulo = btn.dataset.modulo;
     document.getElementById('moduloNotasEntrada').style.display = modulo === 'notasEntrada' ? 'block' : 'none';
+    document.getElementById('moduloServicosTomados').style.display = modulo === 'servicosTomados' ? 'block' : 'none';
     document.getElementById('moduloNfts').style.display = modulo === 'nfts' ? 'block' : 'none';
   });
 });
@@ -4684,6 +5058,1554 @@ function renderNftsDashboard(){
 }
 
 migrarDadosAntigosNftsSeNecessario().then(() => migrarAnexosAntigosNftsSeNecessario());
+
+})();
+</script>
+
+<script>
+(function(){
+'use strict';
+// Camada de compatibilidade de armazenamento (Claude / navegador padrão)
+const hasClaudeStorage = typeof window.storage !== 'undefined' && window.storage && typeof window.storage.get === 'function';
+let idbPromise = null;
+function abrirIDB(){
+  if(idbPromise) return idbPromise;
+  idbPromise = new Promise((resolve, reject)=>{
+    const req = indexedDB.open('notas-entrada-db', 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore('kv'); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return idbPromise;
+}
+const storage = {
+  async get(key){
+    if(hasClaudeStorage) return window.storage.get(key, false);
+    const db = await abrirIDB();
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction('kv', 'readonly');
+      const req = tx.objectStore('kv').get(key);
+      req.onsuccess = () => { if(req.result === undefined) reject(new Error('not found')); else resolve({key, value:req.result, shared:false}); };
+      req.onerror = () => reject(req.error);
+    });
+  },
+  async set(key, value){
+    if(hasClaudeStorage) return window.storage.set(key, value, false);
+    const db = await abrirIDB();
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction('kv', 'readwrite');
+      tx.objectStore('kv').put(value, key);
+      tx.oncomplete = () => resolve({key, value, shared:false});
+      tx.onerror = () => reject(tx.error);
+    });
+  },
+  async delete(key){
+    if(hasClaudeStorage) return window.storage.delete(key, false);
+    const db = await abrirIDB();
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction('kv', 'readwrite');
+      tx.objectStore('kv').delete(key);
+      tx.oncomplete = () => resolve({key, deleted:true, shared:false});
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+};
+
+const DESTINATARIOS = ["Viva Gestão — Matriz (SP)", "Viva Gestão — Filial (SC)", "Outro"];
+
+// Código de Serviço não tem uma tabela universal de descrições como o CFOP
+function descricaoCodigoServico(codigo){ return ''; }
+
+let entries = [];
+const NOTAS_COLLECTION = 'servicosTomados';
+
+let primeiraCargaResolve;
+const primeiraCargaPromise = new Promise(resolve => { primeiraCargaResolve = resolve; });
+
+async function loadEntries(){
+  await firebaseProntoPromise;
+  let primeira = true;
+  db.collection(NOTAS_COLLECTION).onSnapshot(snapshot=>{
+    entries = snapshot.docs.map(doc => doc.data());
+    render();
+    if(primeira){ primeira = false; primeiraCargaResolve(); }
+  }, err=>{
+    console.error('Erro ao sincronizar notas', err);
+  });
+}
+
+async function saveEntries(){
+  await firebaseProntoPromise;
+  try{
+    const batch = db.batch();
+    entries.forEach(e=>{
+      batch.set(db.collection(NOTAS_COLLECTION).doc(e.id), e);
+    });
+    await batch.commit();
+  }catch(e){ console.error('Falha ao salvar', e); }
+}
+
+async function excluirNotaFirestore(id){
+  try{ await db.collection(NOTAS_COLLECTION).doc(id).delete(); }catch(e){ console.error('Falha ao excluir', e); }
+}
+
+// ---- Anexos (PDF) guardados em pedaços no Firestore, para sincronizar entre todos ----
+const ANEXO_CHUNK_SIZE = 700000; // caracteres por pedaço, com folga sob o limite de 1MB por documento
+
+async function salvarAnexoFirestore(id, dataUrl, nome){
+  await firebaseProntoPromise;
+  const partes = [];
+  for(let i = 0; i < dataUrl.length; i += ANEXO_CHUNK_SIZE){
+    partes.push(dataUrl.slice(i, i + ANEXO_CHUNK_SIZE));
+  }
+  const partesRef = db.collection('anexosServicosTomados').doc(id).collection('partes');
+  for(let inicio = 0; inicio < partes.length; inicio += 400){
+    const batch = db.batch();
+    for(let i = inicio; i < Math.min(inicio + 400, partes.length); i++){
+      batch.set(partesRef.doc(String(i)), { data: partes[i] });
+    }
+    await batch.commit();
+  }
+  await db.collection('anexosServicosTomados').doc(id).set({ numChunks: partes.length, nome: nome || '' });
+}
+
+async function buscarAnexoFirestore(id){
+  await firebaseProntoPromise;
+  const manifesto = await db.collection('anexosServicosTomados').doc(id).get();
+  if(!manifesto.exists) return null;
+  const numChunks = manifesto.data().numChunks || 0;
+  const partesSnap = await db.collection('anexosServicosTomados').doc(id).collection('partes').get();
+  const porIndice = {};
+  partesSnap.forEach(doc => { porIndice[doc.id] = doc.data().data; });
+  let completo = '';
+  for(let i = 0; i < numChunks; i++){
+    completo += porIndice[String(i)] || '';
+  }
+  return completo || null;
+}
+
+async function excluirAnexoFirestore(id){
+  await firebaseProntoPromise;
+  try{
+    const partesSnap = await db.collection('anexosServicosTomados').doc(id).collection('partes').get();
+    const batch = db.batch();
+    partesSnap.forEach(doc => batch.delete(doc.ref));
+    if(!partesSnap.empty) await batch.commit();
+    await db.collection('anexosServicosTomados').doc(id).delete();
+  }catch(e){}
+}
+
+function uid(){ return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function normalizeStr(s){
+  return (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+}
+function fmtDate(d){
+  if(!d) return '—';
+  if(!(d instanceof Date)) d = new Date(d + 'T00:00:00');
+  return d.toLocaleDateString('pt-BR');
+}
+function fmtMoney(v){
+  return (Number(v) || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+}
+function currentMonthKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
+
+const filtroSelecionados = { emitente: new Set(), destinatario: new Set(), status: new Set(), mes: new Set(), ano: new Set(), codigoServico: new Set(), analisado: new Set(), contaDebito: new Set() };
+
+const CAMPO_LABELS = { emitente: 'Emitente', destinatario: 'Destinatário', status: 'Status', mes: 'Mês', ano: 'Ano', codigoServico: 'Código de Serviço', analisado: 'Analisado', contaDebito: 'Conta débito' };
+const MES_LABELS = { '01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro' };
+const STATUS_LABELS = { pendente:'Pendente', lancada:'Lançada', contabilizada:'Contabilizado', nao_contabilizada:'Lançada mas não contabilizada' };
+const ANALISADO_LABELS = { sim:'Já analisado', nao:'Ainda não analisado' };
+
+function campoOpcoes(campo){
+  if(campo === 'emitente') return [...new Set(entries.map(e => e.emitente).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR')).map(v=>({value:v, label:v}));
+  if(campo === 'destinatario') return DESTINATARIOS.map(v=>({value:v, label:v}));
+  if(campo === 'status') return Object.keys(STATUS_LABELS).map(v=>({value:v, label:STATUS_LABELS[v]}));
+  if(campo === 'mes') return [...new Set(entries.map(e => e.dataEmissao ? e.dataEmissao.slice(5,7) : null).filter(Boolean))].sort().map(v=>({value:v, label:MES_LABELS[v] || v}));
+  if(campo === 'ano') return [...new Set(entries.map(e => e.dataEmissao ? e.dataEmissao.slice(0,4) : null).filter(Boolean))].sort((a,b)=>b-a).map(v=>({value:v, label:v}));
+  if(campo === 'codigoServico') return [...new Set(entries.map(e => (e.codigoServico||'').toString().trim()).filter(Boolean))].sort().map(v=>({value:v, label: descricaoCodigoServico(v) ? `${v} - ${descricaoCodigoServico(v)}` : v}));
+  if(campo === 'analisado') return Object.keys(ANALISADO_LABELS).map(v=>({value:v, label:ANALISADO_LABELS[v]}));
+  if(campo === 'contaDebito') return [...new Set(entries.map(e => e.contaContabilNome || e.contaContabil || '').map(v=>v.trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR')).map(v=>({value:v, label:v}));
+  return [];
+}
+
+function atualizarBotoesFiltro(){
+  document.getElementById('moduloServicosTomados').querySelectorAll('.xf-btn').forEach(btn=>{
+    const campo = btn.dataset.campo;
+    const sel = filtroSelecionados[campo];
+    btn.textContent = (sel.size === 0 ? 'Todos' : `${CAMPO_LABELS[campo]} (${sel.size})`) + ' ▾';
+  });
+}
+
+let xfCampoAtual = null;
+
+function fecharPainelFiltro(){
+  document.getElementById('st_xfPanel').classList.remove('open');
+  xfCampoAtual = null;
+}
+
+let xfTrabalho = new Set();
+
+function abrirPainelFiltro(campo, btnEl){
+  xfCampoAtual = campo;
+  const painel = document.getElementById('st_xfPanel');
+  const opcoes = campoOpcoes(campo);
+  const selecionados = filtroSelecionados[campo];
+  // conjunto de trabalho: vazio no filtro = "tudo selecionado"
+  xfTrabalho = selecionados.size === 0 ? new Set(opcoes.map(o=>o.value)) : new Set(selecionados);
+
+  const renderLista = (filtroTexto)=>{
+    const termo = (filtroTexto || '').toLowerCase();
+    const visiveis = opcoes.filter(o => o.label.toLowerCase().includes(termo));
+    document.getElementById('st_xfList').innerHTML = visiveis.map(o => `
+      <label class="xf-item">
+        <input type="checkbox" value="${escapeHtml(o.value)}" ${xfTrabalho.has(o.value) ? 'checked' : ''}>
+        <span>${escapeHtml(o.label)}</span>
+      </label>`).join('') || '<p class="hint">Nenhuma opção encontrada.</p>';
+
+    document.querySelectorAll('#xfList input[type="checkbox"]').forEach(chk=>{
+      chk.addEventListener('change', (ev)=>{
+        if(ev.target.checked) xfTrabalho.add(ev.target.value);
+        else xfTrabalho.delete(ev.target.value);
+        document.getElementById('st_xfSelectAll').checked = visiveis.every(o => xfTrabalho.has(o.value));
+      });
+    });
+
+    const todasMarcadas = visiveis.length > 0 && visiveis.every(o => xfTrabalho.has(o.value));
+    document.getElementById('st_xfSelectAll').checked = todasMarcadas;
+
+    document.getElementById('st_xfSelectAll').onchange = (ev)=>{
+      visiveis.forEach(o => { if(ev.target.checked) xfTrabalho.add(o.value); else xfTrabalho.delete(o.value); });
+      document.querySelectorAll('#xfList input[type="checkbox"]').forEach(chk => chk.checked = ev.target.checked);
+    };
+  };
+
+  document.getElementById('st_xfSearch').value = '';
+  renderLista('');
+  document.getElementById('st_xfSearch').oninput = (ev)=> renderLista(ev.target.value);
+
+  const rect = btnEl.getBoundingClientRect();
+  painel.style.top = `${window.scrollY + rect.bottom + 4}px`;
+  painel.style.left = `${window.scrollX + rect.left}px`;
+  painel.classList.add('open');
+}
+
+document.getElementById('moduloServicosTomados').querySelectorAll('.xf-btn').forEach(btn=>{
+  btn.addEventListener('click', (ev)=>{
+    ev.stopPropagation();
+    if(xfCampoAtual === btn.dataset.campo){ fecharPainelFiltro(); return; }
+    abrirPainelFiltro(btn.dataset.campo, btn);
+  });
+});
+document.getElementById('st_xfPanel').addEventListener('click', (ev)=> ev.stopPropagation());
+document.addEventListener('click', ()=> fecharPainelFiltro());
+document.getElementById('st_xfCancel').addEventListener('click', fecharPainelFiltro);
+document.getElementById('st_xfOk').addEventListener('click', ()=>{
+  if(!xfCampoAtual) return;
+  const opcoesTotais = campoOpcoes(xfCampoAtual);
+  filtroSelecionados[xfCampoAtual] = xfTrabalho.size === opcoesTotais.length ? new Set() : new Set(xfTrabalho);
+  fecharPainelFiltro();
+  render();
+});
+
+let cfCampoAtual = null;
+let cfTrabalho = new Set();
+let cfOpcoesAtuais = [];
+
+function fecharPainelResumoCodigoServico(){
+  document.getElementById('st_cfPanel').classList.remove('open');
+  cfCampoAtual = null;
+}
+
+function valorColunaResumo(campo, codigoServico, g){
+  if(campo === 'codigoServico') return codigoServico;
+  if(campo === 'descricao') return descricaoCodigoServico(codigoServico) || '—';
+  if(campo === 'qtd') return String(g.qtd);
+  return fmtMoney(g.valor);
+}
+
+function abrirPainelResumoCodigoServico(campo, btnEl, todasLinhas){
+  cfCampoAtual = campo;
+  const painel = document.getElementById('st_cfPanel');
+  const opcoes = [...new Set(todasLinhas.map(([codigoServico, g]) => valorColunaResumo(campo, codigoServico, g)))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
+  cfOpcoesAtuais = opcoes;
+  const selecionados = resumoCodigoServicoFiltros[campo];
+  cfTrabalho = selecionados.size === 0 ? new Set(opcoes) : new Set(selecionados);
+
+  const renderLista = (filtroTexto)=>{
+    const termo = (filtroTexto || '').toLowerCase();
+    const visiveis = opcoes.filter(o => o.toLowerCase().includes(termo));
+    document.getElementById('st_cfList').innerHTML = visiveis.map(o => `
+      <label class="xf-item">
+        <input type="checkbox" value="${escapeHtml(o)}" ${cfTrabalho.has(o) ? 'checked' : ''}>
+        <span>${escapeHtml(o)}</span>
+      </label>`).join('') || '<p class="hint">Nenhuma opção encontrada.</p>';
+
+    document.querySelectorAll('#cfList input[type="checkbox"]').forEach(chk=>{
+      chk.addEventListener('change', (ev)=>{
+        if(ev.target.checked) cfTrabalho.add(ev.target.value);
+        else cfTrabalho.delete(ev.target.value);
+        document.getElementById('st_cfSelectAll').checked = visiveis.every(o => cfTrabalho.has(o));
+      });
+    });
+    document.getElementById('st_cfSelectAll').checked = visiveis.length > 0 && visiveis.every(o => cfTrabalho.has(o));
+    document.getElementById('st_cfSelectAll').onchange = (ev)=>{
+      visiveis.forEach(o => { if(ev.target.checked) cfTrabalho.add(o); else cfTrabalho.delete(o); });
+      document.querySelectorAll('#cfList input[type="checkbox"]').forEach(chk => chk.checked = ev.target.checked);
+    };
+  };
+
+  document.getElementById('st_cfSearch').value = '';
+  renderLista('');
+  document.getElementById('st_cfSearch').oninput = (ev)=> renderLista(ev.target.value);
+
+  painel.querySelectorAll('.xf-sort-opt').forEach(opt=>{
+    opt.onclick = ()=>{
+      resumoCodigoServicoOrdem = { campo, dir: parseInt(opt.dataset.dir) };
+      fecharPainelResumoCodigoServico();
+      renderResumoCodigoServico(sortEntries(getFiltered()));
+    };
+  });
+
+  const rect = btnEl.getBoundingClientRect();
+  painel.style.top = `${window.scrollY + rect.bottom + 4}px`;
+  painel.style.left = `${window.scrollX + rect.left - 200}px`;
+  painel.classList.add('open');
+}
+
+document.getElementById('st_cfPanel').addEventListener('click', (ev)=> ev.stopPropagation());
+document.addEventListener('click', ()=> fecharPainelResumoCodigoServico());
+document.getElementById('st_cfCancel').addEventListener('click', fecharPainelResumoCodigoServico);
+document.getElementById('st_cfOk').addEventListener('click', ()=>{
+  if(!cfCampoAtual) return;
+  resumoCodigoServicoFiltros[cfCampoAtual] = cfTrabalho.size === cfOpcoesAtuais.length ? new Set() : new Set(cfTrabalho);
+  fecharPainelResumoCodigoServico();
+  renderResumoCodigoServico(sortEntries(getFiltered()));
+});
+
+function getFiltered(){
+  const emitentes = filtroSelecionados.emitente;
+  const dest = filtroSelecionados.destinatario;
+  const status = filtroSelecionados.status;
+  const mes = filtroSelecionados.mes;
+  const ano = filtroSelecionados.ano;
+  const codigoServico = filtroSelecionados.codigoServico;
+  const analisado = filtroSelecionados.analisado;
+  const contaDebito = filtroSelecionados.contaDebito;
+  const numero = document.getElementById('st_fNumero').value.trim();
+  const valorDe = document.getElementById('st_fValorDe').value;
+  const valorAte = document.getElementById('st_fValorAte').value;
+  const de = document.getElementById('st_fDataDe').value;
+  const ate = document.getElementById('st_fDataAte').value;
+  return entries.filter(e=>{
+    if(emitentes.size && !emitentes.has(e.emitente)) return false;
+    if(dest.size && !dest.has(e.destinatario)) return false;
+    if(status.size){
+      const passaAlgum = [...status].some(st=>{
+        if(st === 'pendente') return !e.lancada;
+        if(st === 'lancada') return e.lancada;
+        if(st === 'contabilizada') return !!e.contabilizada;
+        if(st === 'nao_contabilizada') return e.lancada && !e.contabilizada;
+        return false;
+      });
+      if(!passaAlgum) return false;
+    }
+    if(mes.size && (!e.dataEmissao || !mes.has(e.dataEmissao.slice(5,7)))) return false;
+    if(ano.size && (!e.dataEmissao || !ano.has(e.dataEmissao.slice(0,4)))) return false;
+    if(numero && !(e.numero || '').toLowerCase().includes(numero.toLowerCase())) return false;
+    if(codigoServico.size && !codigoServico.has((e.codigoServico || '').toString().trim())) return false;
+    if(analisado.size && !analisado.has(e.analisado ? 'sim' : 'nao')) return false;
+    if(contaDebito.size && !contaDebito.has((e.contaContabilNome || e.contaContabil || '').trim())) return false;
+    if(valorDe && Number(e.valor) < Number(valorDe)) return false;
+    if(valorAte && Number(e.valor) > Number(valorAte)) return false;
+    if(de && (!e.dataEmissao || e.dataEmissao < de)) return false;
+    if(ate && (!e.dataEmissao || e.dataEmissao > ate)) return false;
+    return true;
+  });
+}
+
+function populateSelects(){
+  document.getElementById('st_destinatario').innerHTML = DESTINATARIOS.map(n=>`<option value="${n}">${n}</option>`).join('');
+}
+function sortEntries(list){
+  const ordem = document.getElementById('st_fOrdenar') ? document.getElementById('st_fOrdenar').value : 'emissao_desc';
+  return [...list].sort((a,b)=>{
+    if(a.lancada !== b.lancada) return a.lancada ? 1 : -1;
+    if(ordem === 'valor_desc') return (Number(b.valor)||0) - (Number(a.valor)||0);
+    if(ordem === 'valor_asc') return (Number(a.valor)||0) - (Number(b.valor)||0);
+    if(ordem === 'fornecedor_asc') return (a.emitente||'').localeCompare(b.emitente||'', 'pt-BR');
+    if(ordem === 'fornecedor_desc') return (b.emitente||'').localeCompare(a.emitente||'', 'pt-BR');
+    if(ordem === 'emissao_asc') return (a.dataEmissao || '').localeCompare(b.dataEmissao || '');
+    return (b.dataEmissao || '').localeCompare(a.dataEmissao || '');
+  });
+}
+
+function renderStats(list){
+  let pendentes = 0, lancadasMes = 0, naoContabilizadas = 0;
+  const nowKey = currentMonthKey(new Date());
+  list.forEach(e=>{
+    if(!e.lancada) pendentes++;
+    else {
+      if(e.dataLancamento && currentMonthKey(new Date(e.dataLancamento + 'T00:00:00')) === nowKey) lancadasMes++;
+      if(!e.contabilizada) naoContabilizadas++;
+    }
+  });
+  document.getElementById('st_statPendentes').textContent = pendentes;
+  document.getElementById('st_statNaoContabilizadas').textContent = naoContabilizadas;
+  document.getElementById('st_statLancadasMes').textContent = lancadasMes;
+  document.getElementById('st_statTotal').textContent = list.length;
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function renderTable(list){
+  const container = document.getElementById('st_tableContainer');
+  if(entries.length === 0){
+    container.innerHTML = `<div class="empty"><strong>Nenhum lançamento ainda</strong>Importe da Qive ou cadastre manualmente para começar.</div>`;
+    return;
+  }
+  if(list.length === 0){
+    container.innerHTML = `<div class="empty"><strong>Nada encontrado</strong>Ajuste os filtros para ver os lançamentos.</div>`;
+    return;
+  }
+  const rows = list.map(e=>`<tr>
+    <td style="text-align:center;">
+      <input type="checkbox" data-action="toggle-analisado" data-id="${e.id}" ${e.analisado ? 'checked' : ''} title="Marcar como já analisado" style="width:16px;height:16px;cursor:pointer;">
+    </td>
+    <td>
+      <div class="emitente-name">${escapeHtml(e.emitente)}</div>
+      <div class="sub">${escapeHtml(e.cnpjEmitente || '')}</div>
+    </td>
+    <td class="num-col">${escapeHtml(e.numero || '—')}</td>
+    <td class="num-col">${fmtDate(e.dataEmissao)}</td>
+    <td class="num-col">${fmtMoney(e.valor)}</td>
+    <td>${escapeHtml(e.codigoServico || '—')}${descricaoCodigoServico(e.codigoServico) ? `<div class="sub">${escapeHtml(descricaoCodigoServico(e.codigoServico))}</div>` : ''}</td>
+    <td>${escapeHtml(e.destinatario)}</td>
+    <td>
+      <span class="badge ${e.lancada ? 'lancada' : 'pendente'}">${e.lancada ? 'Lançada' : 'Pendente'}</span>
+      ${e.lancada && e.dataLancamento ? `<div class="sub">${fmtDate(e.dataLancamento)}</div>` : ''}
+      ${e.lancada ? `<div style="margin-top:4px;"><span class="badge ${e.contabilizada ? 'lancada' : 'pendente'}">${e.contabilizada ? 'Contabilizada' : 'Não contabilizada'}</span></div>` : ''}
+    </td>
+    <td>
+      ${e.contabilizada && (e.contaContabilNome || e.contaContabil)
+        ? `<div class="emitente-name" style="font-weight:400;">${escapeHtml(e.contaContabilNome || e.contaContabil)}</div>${e.contaContabilCodigo ? `<div class="sub">${escapeHtml(e.contaContabilCodigo)}</div>` : ''}`
+        : '—'}
+    </td>
+    <td>
+      <div class="row-actions">
+        ${e.temAnexo ? `<button class="icon-btn" data-action="ver-anexo" data-id="${e.id}">PDF</button>
+        <button class="icon-btn" data-action="remover-anexo" data-id="${e.id}">Remover anexo</button>` : ''}
+        <button class="icon-btn" data-action="toggle" data-id="${e.id}">${e.lancada ? 'Desfazer' : 'Marcar lançada'}</button>
+        <button class="icon-btn" data-action="edit" data-id="${e.id}">Editar</button>
+        <button class="icon-btn" data-action="delete" data-id="${e.id}">Excluir</button>
+      </div>
+    </td>
+  </tr>`).join('');
+
+  container.innerHTML = `<table>
+    <thead><tr><th style="text-align:center;"><input type="checkbox" id="st_chkAnalisadoTodos" title="Marcar/desmarcar todos os exibidos como analisados" style="width:16px;height:16px;cursor:pointer;"></th><th>Emitente</th><th>Número</th><th>Emissão</th><th>Valor</th><th>Código de Serviço</th><th>Destinatário</th><th>Status</th><th>Conta débito</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  container.querySelectorAll('[data-action="toggle"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>toggleLancada(btn.dataset.id));
+  });
+  container.querySelectorAll('[data-action="toggle-analisado"]').forEach(chk=>{
+    chk.addEventListener('change', ()=>toggleAnalisado(chk.dataset.id));
+  });
+  const chkTodos = document.getElementById('st_chkAnalisadoTodos');
+  if(chkTodos){
+    chkTodos.checked = list.length > 0 && list.every(e => e.analisado);
+    chkTodos.addEventListener('change', (ev)=>{
+      const novoValor = ev.target.checked;
+      list.forEach(e=>{
+        const idx = entries.findIndex(x=>x.id===e.id);
+        if(idx>=0) entries[idx].analisado = novoValor;
+      });
+      saveEntries();
+      render();
+    });
+  }
+  container.querySelectorAll('[data-action="ver-anexo"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>verAnexo(btn.dataset.id));
+  });
+  container.querySelectorAll('[data-action="remover-anexo"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>removerAnexoUnico(btn.dataset.id));
+  });
+  container.querySelectorAll('[data-action="edit"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>openModal(btn.dataset.id));
+  });
+  container.querySelectorAll('[data-action="delete"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>deleteEntry(btn.dataset.id));
+  });
+}
+
+function render(){
+  atualizarBotoesFiltro();
+  const filtered = sortEntries(getFiltered());
+  renderStats(entries);
+  renderTable(filtered);
+
+  const analisadasLista = filtered.filter(e => e.analisado);
+  const analisadas = analisadasLista.length;
+  const valorAnalisadas = analisadasLista.reduce((soma, e) => soma + (Number(e.valor) || 0), 0);
+  document.getElementById('st_resumoAnalise').textContent = filtered.length === 0
+    ? ''
+    : `${filtered.length} nota(s) exibida(s) — ${analisadas} já analisada(s) (${fmtMoney(valorAnalisadas)}), ${filtered.length - analisadas} ainda não.`;
+
+  renderResumoCodigoServico(filtered);
+
+  if(abaAtiva === 'dashboard') renderDashboard();
+}
+
+let resumoCodigoServicoOrdem = { campo: 'qtd', dir: -1 };
+const resumoCodigoServicoFiltros = { codigoServico: new Set(), descricao: new Set(), qtd: new Set(), valor: new Set() };
+
+function renderResumoCodigoServico(filtered){
+  const grupos = new Map();
+  filtered.forEach(e=>{
+    const codigoServico = (e.codigoServico || '').toString().trim() || '(sem Código de Serviço)';
+    if(!grupos.has(codigoServico)) grupos.set(codigoServico, { qtd: 0, valor: 0 });
+    const g = grupos.get(codigoServico);
+    g.qtd += 1;
+    g.valor += Number(e.valor) || 0;
+  });
+  const todasLinhas = [...grupos.entries()];
+
+  let linhas = todasLinhas.filter(([codigoServico, g])=>{
+    if(resumoCodigoServicoFiltros.codigoServico.size && !resumoCodigoServicoFiltros.codigoServico.has(codigoServico)) return false;
+    if(resumoCodigoServicoFiltros.descricao.size && !resumoCodigoServicoFiltros.descricao.has(descricaoCodigoServico(codigoServico) || '—')) return false;
+    if(resumoCodigoServicoFiltros.qtd.size && !resumoCodigoServicoFiltros.qtd.has(String(g.qtd))) return false;
+    if(resumoCodigoServicoFiltros.valor.size && !resumoCodigoServicoFiltros.valor.has(fmtMoney(g.valor))) return false;
+    return true;
+  });
+
+  const { campo, dir } = resumoCodigoServicoOrdem;
+  linhas.sort((a,b)=>{
+    if(campo === 'codigoServico') return dir * a[0].localeCompare(b[0], 'pt-BR');
+    if(campo === 'descricao') return dir * (descricaoCodigoServico(a[0])||'').localeCompare(descricaoCodigoServico(b[0])||'', 'pt-BR');
+    if(campo === 'valor') return dir * (a[1].valor - b[1].valor);
+    return dir * (a[1].qtd - b[1].qtd);
+  });
+
+  const tabela = document.getElementById('st_resumoCodigoServicoTable');
+  if(linhas.length === 0){
+    tabela.innerHTML = '<tbody><tr><td class="hint" style="padding:8px;">Nenhuma nota no filtro atual.</td></tr></tbody>';
+    return;
+  }
+  const seta = (campo2) => campo === campo2 ? (dir === 1 ? ' ▲' : ' ▼') : '';
+  const th = (campo2, label) => `<th><span class="xf-th-label">${label}${seta(campo2)}</span> <button type="button" class="xf-th-btn" data-campo="${campo2}">▾</button></th>`;
+  tabela.innerHTML = `
+    <thead><tr>
+      ${th('codigoServico','Código de Serviço')}${th('descricao','Descrição')}${th('qtd','Quantidade')}${th('valor','Valor total')}
+    </tr></thead>
+    <tbody>${linhas.map(([codigoServico, g])=>`<tr>
+      <td>${escapeHtml(codigoServico)}</td>
+      <td>${escapeHtml(descricaoCodigoServico(codigoServico) || '—')}</td>
+      <td class="num-col">${g.qtd}</td>
+      <td class="num-col">${fmtMoney(g.valor)}</td>
+    </tr>`).join('')}</tbody>`;
+
+  tabela.querySelectorAll('.xf-th-btn').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      abrirPainelResumoCodigoServico(btn.dataset.campo, btn, todasLinhas);
+    });
+  });
+}
+
+function toggleLancada(id){
+  const idx = entries.findIndex(e=>e.id===id);
+  if(idx < 0) return;
+  entries[idx].lancada = !entries[idx].lancada;
+  entries[idx].dataLancamento = entries[idx].lancada ? new Date().toISOString().slice(0,10) : '';
+  saveEntries();
+  render();
+}
+
+function toggleAnalisado(id){
+  const idx = entries.findIndex(e=>e.id===id);
+  if(idx < 0) return;
+  entries[idx].analisado = !entries[idx].analisado;
+  saveEntries();
+  render();
+}
+
+function deleteEntry(id){
+  entries = entries.filter(e=>e.id!==id);
+  excluirNotaFirestore(id);
+  excluirAnexoFirestore(id);
+  render();
+}
+
+function openModal(id){
+  const form = document.getElementById('st_entryForm');
+  form.reset();
+  document.getElementById('st_err-emitente').textContent='';
+  document.getElementById('st_err-dataEmissao').textContent='';
+  document.getElementById('st_dataLancamentoWrap').style.display='none';
+  document.getElementById('st_codigoServicoHint').textContent = '';
+  pendingAnexoBase64 = undefined;
+  pendingAnexoNome = undefined;
+  removerAnexoFlag = false;
+  document.getElementById('st_anexoStatus').textContent = 'Nenhum arquivo anexado.';
+  document.getElementById('st_btnRemoverAnexo').style.display = 'none';
+
+  if(id){
+    const e = entries.find(x=>x.id===id);
+    if(!e) return;
+    document.getElementById('st_modalTitle').textContent = 'Editar lançamento';
+    document.getElementById('st_entryId').value = e.id;
+    document.getElementById('st_emitente').value = e.emitente;
+    document.getElementById('st_cnpjEmitente').value = e.cnpjEmitente || '';
+    document.getElementById('st_numero').value = e.numero || '';
+    document.getElementById('st_destinatario').value = e.destinatario;
+    document.getElementById('st_dataEmissao').value = e.dataEmissao;
+    document.getElementById('st_valor').value = e.valor;
+    document.getElementById('st_codigoServico').value = e.codigoServico || '';
+    document.getElementById('st_codigoServicoHint').textContent = descricaoCodigoServico(e.codigoServico);
+    document.getElementById('st_observacoes').value = e.observacoes || '';
+    document.querySelector(`input[name="lancada"][value="${e.lancada ? 'sim' : 'nao'}"]`).checked = true;
+    document.getElementById('st_dataLancamento').value = e.dataLancamento || '';
+    if(e.lancada) document.getElementById('st_dataLancamentoWrap').style.display='block';
+    if(e.temAnexo){
+      document.getElementById('st_anexoStatus').textContent = `Anexado: ${e.anexoNome || 'arquivo.pdf'}`;
+      document.getElementById('st_btnRemoverAnexo').style.display = 'inline-block';
+    }
+  } else {
+    document.getElementById('st_modalTitle').textContent = 'Novo lançamento';
+    document.getElementById('st_entryId').value = '';
+  }
+  document.getElementById('st_entryOverlay').classList.add('open');
+}
+function closeModal(){ document.getElementById('st_entryOverlay').classList.remove('open'); }
+
+document.getElementById('st_btnNovo').addEventListener('click', ()=>openModal(null));
+document.getElementById('st_btnCancelar').addEventListener('click', closeModal);
+document.getElementById('st_entryOverlay').addEventListener('click', (ev)=>{ if(ev.target.id==='entryOverlay') closeModal(); });
+
+document.querySelectorAll('input[name="lancada"]').forEach(r=>{
+  r.addEventListener('change', (ev)=>{
+    const isSim = ev.target.value === 'sim';
+    document.getElementById('st_dataLancamentoWrap').style.display = isSim ? 'block' : 'none';
+    if(isSim){
+      const campo = document.getElementById('st_dataLancamento');
+      if(!campo.value) campo.value = new Date().toISOString().slice(0,10);
+    }
+  });
+});
+
+document.getElementById('st_codigoServico').addEventListener('input', (ev)=>{
+  document.getElementById('st_codigoServicoHint').textContent = descricaoCodigoServico(ev.target.value);
+});
+
+document.getElementById('st_entryForm').addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  let valid = true;
+  const emitente = document.getElementById('st_emitente').value.trim();
+  const dataEmissao = document.getElementById('st_dataEmissao').value;
+  if(!emitente){ document.getElementById('st_err-emitente').textContent = 'Informe o emitente.'; valid=false; }
+  else document.getElementById('st_err-emitente').textContent = '';
+  if(!dataEmissao){ document.getElementById('st_err-dataEmissao').textContent = 'Informe a data de emissão.'; valid=false; }
+  else document.getElementById('st_err-dataEmissao').textContent = '';
+  if(!valid) return;
+
+  const id = document.getElementById('st_entryId').value || uid();
+  const lancada = document.querySelector('input[name="lancada"]:checked').value === 'sim';
+  const existing = entries.find(e=>e.id===id);
+  let temAnexo = existing ? !!existing.temAnexo : false;
+  let anexoNome = existing ? existing.anexoNome : '';
+  if(pendingAnexoBase64){ temAnexo = true; anexoNome = pendingAnexoNome; }
+  if(removerAnexoFlag){ temAnexo = false; anexoNome = ''; }
+
+  const entry = {
+    id,
+    emitente,
+    cnpjEmitente: document.getElementById('st_cnpjEmitente').value.trim(),
+    cnpjEmitenteDigits: existing ? existing.cnpjEmitenteDigits : document.getElementById('st_cnpjEmitente').value.replace(/\D/g,''),
+    numero: document.getElementById('st_numero').value.trim(),
+    chave: existing ? existing.chave : '',
+    destinatario: document.getElementById('st_destinatario').value,
+    dataEmissao,
+    valor: document.getElementById('st_valor').value || 0,
+    codigoServico: document.getElementById('st_codigoServico').value.trim(),
+    lancada,
+    dataLancamento: lancada ? (document.getElementById('st_dataLancamento').value || new Date().toISOString().slice(0,10)) : '',
+    observacoes: document.getElementById('st_observacoes').value.trim(),
+    temAnexo,
+    anexoNome
+  };
+  const idx = entries.findIndex(e=>e.id===id);
+  if(idx >= 0) entries[idx] = entry; else entries.push(entry);
+  saveEntries();
+
+  if(pendingAnexoBase64){
+    try{ await salvarAnexoFirestore(id, pendingAnexoBase64, pendingAnexoNome); }catch(e){ console.error(e); }
+  }
+  if(removerAnexoFlag){
+    try{ await excluirAnexoFirestore(id); }catch(e){}
+  }
+
+  closeModal();
+  render();
+});
+
+document.getElementById('st_fDataDe').addEventListener('change', render);
+document.getElementById('st_fDataAte').addEventListener('change', render);
+document.getElementById('st_fNumero').addEventListener('input', render);
+document.getElementById('st_fValorDe').addEventListener('input', render);
+document.getElementById('st_fValorAte').addEventListener('input', render);
+document.getElementById('st_fOrdenar').addEventListener('change', render);
+document.getElementById('st_btnLimpar').addEventListener('click', ()=>{
+  Object.keys(filtroSelecionados).forEach(campo => filtroSelecionados[campo] = new Set());
+  document.getElementById('st_fNumero').value='';
+  document.getElementById('st_fValorDe').value='';
+  document.getElementById('st_fValorAte').value='';
+  document.getElementById('st_fOrdenar').value='emissao_desc';
+  document.getElementById('st_fDataDe').value='';
+  document.getElementById('st_fDataAte').value='';
+  render();
+});
+document.getElementById('st_btnMarcarFiltradas').addEventListener('click', ()=>{
+  const filtrados = getFiltered().filter(e=>!e.lancada);
+  if(filtrados.length === 0){ alert('Nada pendente no filtro atual.'); return; }
+  if(!confirm(`Marcar ${filtrados.length} nota(s) filtrada(s) como lançadas no Omie?`)) return;
+  const hoje = new Date().toISOString().slice(0,10);
+  const ids = new Set(filtrados.map(e=>e.id));
+  entries.forEach(e=>{ if(ids.has(e.id)){ e.lancada = true; e.dataLancamento = hoje; } });
+  saveEntries();
+  render();
+});
+
+document.getElementById('st_btnRemoverDuplicados').addEventListener('click', ()=>{
+  const grupos = new Map();
+  entries.forEach(e=>{
+    const k = e.chave || `${normalizeStr(e.emitente)}|${e.numero}|${e.dataEmissao}`;
+    if(!grupos.has(k)) grupos.set(k, []);
+    grupos.get(k).push(e);
+  });
+  const paraRemover = [];
+  grupos.forEach(grupo=>{
+    if(grupo.length <= 1) return;
+    const manter = grupo.find(e=>e.lancada) || grupo[0];
+    grupo.forEach(e=>{ if(e.id !== manter.id) paraRemover.push(e.id); });
+  });
+  if(paraRemover.length === 0){ alert('Não encontrei duplicados.'); return; }
+  if(!confirm(`Remover ${paraRemover.length} lançamento(s) duplicado(s)?`)) return;
+  const idsRemover = new Set(paraRemover);
+  entries = entries.filter(e=>!idsRemover.has(e.id));
+  paraRemover.forEach(id => excluirNotaFirestore(id));
+  render();
+  alert(`${paraRemover.length} duplicado(s) removido(s).`);
+});
+
+// ---- Importação ----
+let importHeaders = [];
+let importRows = [];
+let previewRows = [];
+const IMPORTED_KEY = 'notasentrada:imported-keys';
+let importedKeys = new Set();
+
+async function loadImportedKeys(){
+  await firebaseProntoPromise;
+  try{
+    const docSnap = await db.collection('meta').doc('importedKeysServicosTomados').get();
+    importedKeys = new Set(docSnap.exists ? (docSnap.data().keys || []) : []);
+  }catch(e){ importedKeys = new Set(); }
+}
+async function saveImportedKeys(){
+  await firebaseProntoPromise;
+  try{ await db.collection('meta').doc('importedKeysServicosTomados').set({ keys: [...importedKeys] }); }catch(e){}
+}
+
+function guessColumn(headers, keywordGroups){
+  for(const group of keywordGroups){
+    const idx = headers.findIndex(h => group.every(k => normalizeStr(h).includes(normalizeStr(k))));
+    if(idx >= 0) return idx;
+  }
+  return -1;
+}
+
+function parseCsv(text){
+  const delim = text.split('\n')[0].includes(';') ? ';' : ',';
+  const lines = text.split(/\r?\n/).filter(l => l.trim().length);
+  const parseLine = (line) => {
+    const out = []; let cur = '', inQuotes = false;
+    for(let i=0;i<line.length;i++){
+      const c = line[i];
+      if(c === '"'){ inQuotes = !inQuotes; continue; }
+      if(c === delim && !inQuotes){ out.push(cur); cur=''; continue; }
+      cur += c;
+    }
+    out.push(cur);
+    return out.map(s=>s.trim());
+  };
+  return lines.map(parseLine);
+}
+
+function parseValorBR(valorRaw){
+  if(typeof valorRaw === 'number') return valorRaw;
+  let s = (valorRaw || '0').toString().trim().replace(/R\$\s?/gi, '').trim();
+  if(!s) return 0;
+  if(s.includes(',') && s.includes('.')){
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if(s.includes(',')){
+    s = s.replace(',', '.');
+  }
+  return parseFloat(s) || 0;
+}
+
+function excelDateToISO(v){
+  if(typeof v === 'number'){
+    const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+    return d.toISOString().slice(0,10);
+  }
+  const s = (v||'').toString().trim();
+  let m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m) return `${m[3]}-${m[2]}-${m[1]}`;
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return s.slice(0,10);
+  return '';
+}
+
+function openImportModal(){ resetImportModal(); document.getElementById('st_importOverlay').classList.add('open'); }
+function closeImportModal(){ document.getElementById('st_importOverlay').classList.remove('open'); }
+function resetImportModal(){
+  importRows = []; importHeaders = []; previewRows = [];
+  document.getElementById('st_fileInput').value = '';
+  document.getElementById('st_err-file').textContent = '';
+  document.getElementById('st_importStep1').style.display = 'block';
+  document.getElementById('st_importStep2').style.display = 'none';
+  document.getElementById('st_importStep3').style.display = 'none';
+  document.getElementById('st_stepDot1').classList.add('active');
+  document.getElementById('st_stepDot2').classList.remove('active');
+  document.getElementById('st_stepDot3').classList.remove('active');
+  document.getElementById('st_btnImportConfirmar').style.display = 'none';
+}
+
+function goToStep2(){
+  document.getElementById('st_importStep1').style.display = 'none';
+  document.getElementById('st_importStep2').style.display = 'block';
+  document.getElementById('st_importStep3').style.display = 'none';
+  document.getElementById('st_stepDot2').classList.add('active');
+
+  const fill = (selectId) => {
+    const sel = document.getElementById(selectId);
+    sel.innerHTML = '<option value="-1">— não informado —</option>' +
+      importHeaders.map((h,i)=>`<option value="${i}">${escapeHtml(h)}</option>`).join('');
+    return sel;
+  };
+  fill('st_mapEmitente').value = guessColumn(importHeaders, [['prestador','nome'],['prestador','razao'],['nome','razao','emitente'],['emitente']]);
+  fill('st_mapCnpjEmitente').value = guessColumn(importHeaders, [['cpf','cnpj','prestador'],['cnpj','prestador'],['cnpj','emitente']]);
+  fill('st_mapNumero').value = guessColumn(importHeaders, [['numero']]);
+  fill('st_mapChave').value = guessColumn(importHeaders, [['codigo','verificacao'],['chave'],['numero']]);
+  fill('st_mapCnpjDest').value = guessColumn(importHeaders, [['cnpj','tomador'],['cpf','tomador'],['cnpj','destinatario']]);
+  fill('st_mapData').value = guessColumn(importHeaders, [['data','emissao'],['emissao'],['data']]);
+  fill('st_mapValor').value = guessColumn(importHeaders, [['valor','servico'],['valor']]);
+  fill('st_mapCodigoServico').value = guessColumn(importHeaders, [['codigo','servico']]);
+  fill('st_mapStatus').value = guessColumn(importHeaders, [['cancelada'],['status']]);
+}
+
+function detectDestinatario(cnpjStr){
+  const m = (cnpjStr || '').toString().match(/\/(\d{4})-\d{2}/);
+  if(!m) return 'Outro';
+  if(m[1] === '0001') return 'Viva Gestão — Matriz (SP)';
+  return 'Viva Gestão — Filial (SC)';
+}
+
+function buildPreview(){
+  const iEmitente = parseInt(document.getElementById('st_mapEmitente').value);
+  const iCnpjEmitente = parseInt(document.getElementById('st_mapCnpjEmitente').value);
+  const iNumero = parseInt(document.getElementById('st_mapNumero').value);
+  const iChave = parseInt(document.getElementById('st_mapChave').value);
+  const iCnpjDest = parseInt(document.getElementById('st_mapCnpjDest').value);
+  const iData = parseInt(document.getElementById('st_mapData').value);
+  const iValor = parseInt(document.getElementById('st_mapValor').value);
+  const iCodigoServico = parseInt(document.getElementById('st_mapCodigoServico').value);
+  const iStatus = parseInt(document.getElementById('st_mapStatus').value);
+
+  previewRows = [];
+  let skippedCancelada = 0, skippedDup = 0;
+
+  importRows.forEach(row=>{
+    if(iStatus >= 0 && normalizeStr(row[iStatus]) === 'SIM'){ skippedCancelada++; return; }
+    const chave = iChave >= 0 ? (row[iChave] || '').toString().trim() : '';
+    const chaveDedup = chave || `${row[iEmitente]}|${row[iNumero]}`;
+    if(importedKeys.has(chaveDedup)){ skippedDup++; return; }
+
+    const valorRaw = iValor >= 0 ? row[iValor] : '';
+    const valorNum = parseValorBR(valorRaw);
+
+    previewRows.push({
+      chave: chaveDedup,
+      emitente: iEmitente >= 0 ? row[iEmitente] : '(emitente não identificado)',
+      cnpjEmitente: iCnpjEmitente >= 0 ? row[iCnpjEmitente] : '',
+      cnpjEmitenteDigits: iCnpjEmitente >= 0 ? (row[iCnpjEmitente] || '').toString().replace(/\D/g, '') : '',
+      numero: iNumero >= 0 ? (row[iNumero] || '').toString().trim() : '',
+      destinatario: iCnpjDest >= 0 ? detectDestinatario(row[iCnpjDest]) : 'Outro',
+      dataEmissao: iData >= 0 ? excelDateToISO(row[iData]) : '',
+      valor: valorNum,
+      codigoServico: iCodigoServico >= 0 ? row[iCodigoServico] : ''
+    });
+  });
+
+  document.getElementById('st_importStep2').style.display = 'none';
+  document.getElementById('st_importStep3').style.display = 'block';
+  document.getElementById('st_stepDot3').classList.add('active');
+
+  const summaryEl = document.getElementById('st_importSummary');
+  if(previewRows.length === 0){
+    summaryEl.className = 'import-summary empty';
+    summaryEl.textContent = `Nenhum lançamento novo. (${skippedCancelada} canceladas ignoradas, ${skippedDup} já importadas antes.)`;
+    document.getElementById('st_previewTable').innerHTML = '';
+    document.getElementById('st_btnImportConfirmar').style.display = 'none';
+    return;
+  }
+
+  summaryEl.className = 'import-summary';
+  summaryEl.innerHTML = `<strong style="font-weight:500;color:var(--ink);">${previewRows.length} nota(s) a importar</strong>, todas marcadas como "Pendente" (não lançada).
+    ${skippedCancelada} canceladas ignoradas, ${skippedDup} já importadas antes.`;
+
+  document.getElementById('st_previewTable').innerHTML = `
+    <thead><tr><th>Emitente</th><th>Número</th><th>Emissão</th><th>Valor</th><th>Destinatário</th></tr></thead>
+    <tbody>${previewRows.map(r=>`<tr>
+      <td>${escapeHtml(r.emitente)}</td>
+      <td>${escapeHtml(r.numero)}</td>
+      <td>${r.dataEmissao ? fmtDate(r.dataEmissao) : '—'}</td>
+      <td class="num-col">${fmtMoney(r.valor)}</td>
+      <td>${escapeHtml(r.destinatario)}</td>
+    </tr>`).join('')}</tbody>`;
+
+  document.getElementById('st_btnImportConfirmar').style.display = 'inline-block';
+}
+
+function confirmImport(){
+  const validRows = previewRows.filter(r => r.dataEmissao);
+  const skippedNoDate = previewRows.length - validRows.length;
+
+  validRows.forEach(r=>{
+    entries.push({
+      id: uid(),
+      emitente: r.emitente,
+      cnpjEmitente: r.cnpjEmitente,
+      cnpjEmitenteDigits: r.cnpjEmitenteDigits,
+      numero: r.numero,
+      chave: r.chave,
+      destinatario: r.destinatario,
+      dataEmissao: r.dataEmissao,
+      valor: r.valor,
+      codigoServico: r.codigoServico,
+      lancada: false,
+      dataLancamento: '',
+      observacoes: 'Importado da Qive',
+      temAnexo: false,
+      anexoNome: ''
+    });
+    importedKeys.add(r.chave);
+  });
+
+  saveEntries();
+  saveImportedKeys();
+  closeImportModal();
+  render();
+  if(skippedNoDate > 0){
+    alert(`${validRows.length} lançamentos importados. ${skippedNoDate} ficaram de fora por falta de data — importe manualmente.`);
+  }
+}
+
+function handleFile(file){
+  document.getElementById('st_err-file').textContent = '';
+  const name = file.name.toLowerCase();
+  if(name.endsWith('.csv')){
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const rows = parseCsv(e.target.result);
+      if(rows.length < 2){ document.getElementById('st_err-file').textContent = 'Arquivo vazio.'; return; }
+      importHeaders = rows[0];
+      importRows = rows.slice(1);
+      goToStep2();
+    };
+    reader.readAsText(file, 'utf-8');
+  } else if(name.endsWith('.xlsx') || name.endsWith('.xls')){
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      try{
+        const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array', cellDates:false});
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true});
+        const cleanRows = rows.filter(r => r.some(c => c !== undefined && c !== ''));
+        if(cleanRows.length < 2){ document.getElementById('st_err-file').textContent = 'Planilha vazia.'; return; }
+        importHeaders = cleanRows[0].map(h => (h||'').toString());
+        importRows = cleanRows.slice(1);
+        goToStep2();
+      }catch(err){
+        document.getElementById('st_err-file').textContent = 'Não consegui ler esse arquivo.';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    document.getElementById('st_err-file').textContent = 'Formato não reconhecido.';
+  }
+}
+
+document.getElementById('st_btnImportar').addEventListener('click', openImportModal);
+document.getElementById('st_btnImportCancelar').addEventListener('click', closeImportModal);
+document.getElementById('st_importOverlay').addEventListener('click', (ev)=>{ if(ev.target.id === 'importOverlay') closeImportModal(); });
+document.getElementById('st_dropzone').addEventListener('click', ()=>document.getElementById('st_fileInput').click());
+document.getElementById('st_dropzone').addEventListener('dragover', (ev)=>{ ev.preventDefault(); ev.currentTarget.classList.add('drag'); });
+document.getElementById('st_dropzone').addEventListener('dragleave', (ev)=>{ ev.currentTarget.classList.remove('drag'); });
+document.getElementById('st_dropzone').addEventListener('drop', (ev)=>{
+  ev.preventDefault(); ev.currentTarget.classList.remove('drag');
+  if(ev.dataTransfer.files[0]) handleFile(ev.dataTransfer.files[0]);
+});
+document.getElementById('st_fileInput').addEventListener('change', (ev)=>{ if(ev.target.files[0]) handleFile(ev.target.files[0]); });
+document.getElementById('st_btnGerarPreview').addEventListener('click', buildPreview);
+document.getElementById('st_btnImportConfirmar').addEventListener('click', confirmImport);
+
+let pendingAnexoBase64;
+let pendingAnexoNome;
+let removerAnexoFlag = false;
+
+async function verAnexo(id){
+  try{
+    const dataUrl = await buscarAnexoFirestore(id);
+    if(!dataUrl){ alert('Anexo não encontrado.'); return; }
+    const w = window.open();
+    w.document.write(`<iframe src="${dataUrl}" style="border:none;width:100%;height:100vh;"></iframe>`);
+  }catch(e){ alert('Não consegui abrir o anexo.'); }
+}
+
+async function removerAnexoUnico(id){
+  const entry = entries.find(e=>e.id===id);
+  if(!entry) return;
+  if(!confirm(`Remover o anexo de "${entry.emitente}"?`)) return;
+  try{ await excluirAnexoFirestore(id); }catch(e){}
+  const idx = entries.findIndex(e=>e.id===id);
+  if(idx >= 0){ entries[idx].temAnexo = false; entries[idx].anexoNome = ''; }
+  saveEntries();
+  render();
+}
+
+function sleep(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+
+document.getElementById('st_anexoPdf').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  if(!file) return;
+  if(file.type !== 'application/pdf'){ alert('Selecione um arquivo PDF.'); ev.target.value=''; return; }
+  if(file.size > 4 * 1024 * 1024){ alert('O arquivo precisa ter até 4 MB.'); ev.target.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    pendingAnexoBase64 = e.target.result;
+    pendingAnexoNome = file.name;
+    removerAnexoFlag = false;
+    document.getElementById('st_anexoStatus').textContent = `Pronto para salvar: ${file.name}`;
+    document.getElementById('st_btnRemoverAnexo').style.display = 'inline-block';
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById('st_btnRemoverAnexo').addEventListener('click', ()=>{
+  pendingAnexoBase64 = undefined;
+  pendingAnexoNome = undefined;
+  removerAnexoFlag = true;
+  document.getElementById('st_anexoPdf').value = '';
+  document.getElementById('st_anexoStatus').textContent = 'Anexo será removido ao salvar.';
+  document.getElementById('st_btnRemoverAnexo').style.display = 'none';
+});
+
+document.getElementById('st_btnLimparAnexos').addEventListener('click', async ()=>{
+  const comAnexo = entries.filter(e => e.temAnexo);
+  if(comAnexo.length === 0){ alert('Nenhum lançamento tem anexo no momento.'); return; }
+  if(!confirm(`Remover o anexo de ${comAnexo.length} lançamento(s)?`)) return;
+  const btn = document.getElementById('st_btnLimparAnexos');
+  btn.disabled = true;
+  for(let i=0;i<comAnexo.length;i++){
+    btn.textContent = `Removendo ${i+1}/${comAnexo.length}...`;
+    try{ await excluirAnexoFirestore(comAnexo[i].id); }catch(e){}
+    const idx = entries.findIndex(e=>e.id===comAnexo[i].id);
+    if(idx>=0){ entries[idx].temAnexo=false; entries[idx].anexoNome=''; }
+    await sleep(150);
+  }
+  btn.textContent = 'Remover todos os anexos';
+  btn.disabled = false;
+  saveEntries();
+  render();
+  alert(`${comAnexo.length} anexo(s) removido(s).`);
+});
+
+// ---- Importação de PDFs em lote (ZIP) ----
+let pdfZipMatches = [];
+
+function normalizeFilename(s){ return normalizeStr(s).replace(/[^A-Z0-9]/g, ''); }
+
+function parseNomeQive(nomeSemExt){
+  const partes = nomeSemExt.split('_');
+  if(partes.length !== 3) return null;
+  return { data: partes[0], numero: partes[1].replace(/^0+(?=\d)/, ''), cnpj: partes[2] };
+}
+
+function encontrarArquivoParaEntry(entry, arquivos){
+  const parseados = arquivos.map(a => ({ a, p: parseNomeQive(a.nomeOriginal.replace(/[.]pdf$/i, '')) }));
+  const numeroEntry = (entry.numero || '').replace(/^0+(?=\d)/, '');
+
+  if(numeroEntry && entry.cnpjEmitenteDigits){
+    const achou = parseados.find(x => x.p && x.p.numero === numeroEntry && x.p.cnpj === entry.cnpjEmitenteDigits);
+    if(achou) return achou.a;
+  }
+  if(entry.chave && entry.chave.length >= 10){
+    const chaveNorm = normalizeFilename(entry.chave);
+    const achou = arquivos.find(a => normalizeFilename(a.nomeOriginal).includes(chaveNorm));
+    if(achou) return achou;
+  }
+  if(numeroEntry){
+    const achou = parseados.find(x => x.p && x.p.numero === numeroEntry);
+    if(achou) return achou.a;
+  }
+  const emitenteNorm = normalizeFilename(entry.emitente).slice(0, 12);
+  if(emitenteNorm.length >= 6){
+    const achou = arquivos.find(a => normalizeFilename(a.nomeOriginal).includes(emitenteNorm));
+    if(achou) return achou;
+  }
+  return null;
+}
+
+async function coletarPdfsDoZip(zip, arquivos, profundidade){
+  if(profundidade > 4) return;
+  const listaEntradas = [];
+  zip.forEach((path, zipEntry)=>{ listaEntradas.push(zipEntry); });
+  for(const zipEntry of listaEntradas){
+    if(zipEntry.dir) continue;
+    if(/\.pdf$/i.test(zipEntry.name)){
+      arquivos.push({ nomeOriginal: zipEntry.name.split('/').pop(), zipEntry, usado: false });
+    } else if(/\.zip$/i.test(zipEntry.name)){
+      try{
+        const nestedData = await zipEntry.async('arraybuffer');
+        const nestedZip = await JSZip.loadAsync(nestedData);
+        await coletarPdfsDoZip(nestedZip, arquivos, profundidade + 1);
+      }catch(e){}
+    }
+  }
+}
+
+function openPdfZipModal(){
+  document.getElementById('st_pdfZipInput').value = '';
+  document.getElementById('st_err-pdfzip').textContent = '';
+  document.getElementById('st_pdfZipStep1').style.display = 'block';
+  document.getElementById('st_pdfZipStep2').style.display = 'none';
+  document.getElementById('st_btnPdfZipConfirmar').style.display = 'none';
+  document.getElementById('st_pdfZipOverlay').classList.add('open');
+}
+function closePdfZipModal(){ document.getElementById('st_pdfZipOverlay').classList.remove('open'); }
+
+async function processarPdfZip(file){
+  document.getElementById('st_err-pdfzip').textContent = 'Lendo o ZIP...';
+  let zip;
+  try{ zip = await JSZip.loadAsync(file); }
+  catch(e){ document.getElementById('st_err-pdfzip').textContent = 'Não consegui ler esse arquivo ZIP.'; return; }
+
+  const arquivos = [];
+  await coletarPdfsDoZip(zip, arquivos, 0);
+  if(arquivos.length === 0){
+    document.getElementById('st_err-pdfzip').textContent = 'Nenhum PDF encontrado dentro do ZIP.';
+    return;
+  }
+
+  const candidatos = entries.filter(e => !e.temAnexo);
+  pdfZipMatches = [];
+  candidatos.forEach(entry=>{
+    const disponiveis = arquivos.filter(a => !a.usado);
+    const achou = encontrarArquivoParaEntry(entry, disponiveis);
+    if(achou){ achou.usado = true; pdfZipMatches.push({ entry, arquivo: achou }); }
+  });
+
+  document.getElementById('st_pdfZipStep1').style.display = 'none';
+  document.getElementById('st_pdfZipStep2').style.display = 'block';
+
+  const summaryEl = document.getElementById('st_pdfZipSummary');
+  const naoCasados = arquivos.filter(a => !a.usado).length;
+  if(pdfZipMatches.length === 0){
+    summaryEl.className = 'import-summary empty';
+    summaryEl.textContent = `Nenhum PDF do ZIP foi casado com um lançamento sem anexo. (${arquivos.length} PDF(s) no ZIP.)`;
+  } else {
+    summaryEl.className = 'import-summary';
+    summaryEl.innerHTML = `<strong style="font-weight:500;color:var(--ink);">${pdfZipMatches.length} PDF(s) casados</strong> com lançamentos sem anexo.
+      ${naoCasados} PDF(s) do ZIP não encontraram lançamento correspondente e ficam de fora.`;
+  }
+
+  document.getElementById('st_pdfZipPreviewTable').innerHTML = `
+    <thead><tr><th>Emitente</th><th>Número</th><th>Arquivo casado</th></tr></thead>
+    <tbody>${pdfZipMatches.map(m=>`<tr>
+      <td>${escapeHtml(m.entry.emitente)}</td>
+      <td>${escapeHtml(m.entry.numero)}</td>
+      <td>${escapeHtml(m.arquivo.nomeOriginal)}</td>
+    </tr>`).join('')}</tbody>`;
+
+  const idsComMatch = new Set(pdfZipMatches.map(m => m.entry.id));
+  const semAnexoRestantes = candidatos.filter(e => !idsComMatch.has(e.id));
+  document.getElementById('st_pdfZipSemAnexoTitulo').textContent = semAnexoRestantes.length > 0
+    ? `${semAnexoRestantes.length} lançamento(s) continuam sem anexo:`
+    : 'Todos os lançamentos pendentes ficam com anexo após esta importação.';
+  document.getElementById('st_pdfZipSemAnexoTable').innerHTML = semAnexoRestantes.length === 0 ? '' : `
+    <thead><tr><th>Emitente</th><th>Número</th><th>Emissão</th></tr></thead>
+    <tbody>${semAnexoRestantes.map(e=>`<tr>
+      <td>${escapeHtml(e.emitente)}</td>
+      <td>${escapeHtml(e.numero)}</td>
+      <td class="num-col">${fmtDate(e.dataEmissao)}</td>
+    </tr>`).join('')}</tbody>`;
+
+  document.getElementById('st_btnPdfZipConfirmar').style.display = pdfZipMatches.length ? 'inline-block' : 'none';
+}
+
+async function salvarAnexoComRetry(id, dataUrl, nome, tentativas){
+  for(let i=0;i<tentativas;i++){
+    try{ await salvarAnexoFirestore(id, dataUrl, nome); return true; }
+    catch(e){ if(i===tentativas-1){ console.error(e); return false; } await sleep(500*(i+1)); }
+  }
+  return false;
+}
+
+async function confirmarPdfZip(){
+  const btn = document.getElementById('st_btnPdfZipConfirmar');
+  btn.disabled = true;
+  let ok=0, falhas=0;
+  for(let i=0;i<pdfZipMatches.length;i++){
+    const m = pdfZipMatches[i];
+    btn.textContent = `Anexando ${i+1}/${pdfZipMatches.length}...`;
+    try{
+      const b64 = await m.arquivo.zipEntry.async('base64');
+      const dataUrl = `data:application/pdf;base64,${b64}`;
+      const salvou = await salvarAnexoComRetry(m.entry.id, dataUrl, m.arquivo.nomeOriginal, 3);
+      if(salvou){
+        const idx = entries.findIndex(e=>e.id===m.entry.id);
+        if(idx>=0){ entries[idx].temAnexo=true; entries[idx].anexoNome=m.arquivo.nomeOriginal; }
+        ok++;
+      } else falhas++;
+    }catch(e){ falhas++; }
+    await sleep(200);
+  }
+  btn.textContent = 'Anexar PDFs casados';
+  btn.disabled = false;
+  saveEntries();
+  closePdfZipModal();
+  render();
+  alert(falhas>0 ? `${ok} anexados, ${falhas} falharam — tente de novo.` : `${ok} PDF(s) anexados.`);
+}
+
+document.getElementById('st_btnImportarPdfs').addEventListener('click', openPdfZipModal);
+document.getElementById('st_btnPdfZipCancelar').addEventListener('click', closePdfZipModal);
+document.getElementById('st_pdfZipOverlay').addEventListener('click', (ev)=>{ if(ev.target.id==='pdfZipOverlay') closePdfZipModal(); });
+document.getElementById('st_pdfZipDropzone').addEventListener('click', ()=>document.getElementById('st_pdfZipInput').click());
+document.getElementById('st_pdfZipDropzone').addEventListener('dragover', (ev)=>{ ev.preventDefault(); ev.currentTarget.classList.add('drag'); });
+document.getElementById('st_pdfZipDropzone').addEventListener('dragleave', (ev)=>{ ev.currentTarget.classList.remove('drag'); });
+document.getElementById('st_pdfZipDropzone').addEventListener('drop', (ev)=>{
+  ev.preventDefault(); ev.currentTarget.classList.remove('drag');
+  if(ev.dataTransfer.files[0]) processarPdfZip(ev.dataTransfer.files[0]);
+});
+document.getElementById('st_pdfZipInput').addEventListener('change', (ev)=>{ if(ev.target.files[0]) processarPdfZip(ev.target.files[0]); });
+document.getElementById('st_btnPdfZipConfirmar').addEventListener('click', confirmarPdfZip);
+
+// ---- Conciliação com o razão contábil (OneFlow) ----
+let razaoMatches = [];
+
+function openRazaoModal(){
+  document.getElementById('st_razaoFileInput').value = '';
+  document.getElementById('st_err-razao').textContent = '';
+  document.getElementById('st_razaoStep1').style.display = 'block';
+  document.getElementById('st_razaoStep2').style.display = 'none';
+  document.getElementById('st_btnRazaoConfirmar').style.display = 'none';
+  document.getElementById('st_razaoOverlay').classList.add('open');
+}
+function closeRazaoModal(){ document.getElementById('st_razaoOverlay').classList.remove('open'); }
+
+function localizarLinhaCabecalhoRazao(rows){
+  for(let i=0;i<Math.min(rows.length,10);i++){
+    if(rows[i] && normalizeStr(rows[i][0]).includes('CONTA')) return i;
+  }
+  return 2;
+}
+
+function extrairTransacoesRazao(rows){
+  const headerIdx = localizarLinhaCabecalhoRazao(rows);
+  const cabecalho = rows[headerIdx].map(h => (h||'').toString());
+  const iConta = guessColumn(cabecalho, [['conta']]);
+  const iData = guessColumn(cabecalho, [['data']]);
+  const iDocumento = guessColumn(cabecalho, [['documento']]);
+  const iHistorico = guessColumn(cabecalho, [['historico']]);
+  const iDebito = guessColumn(cabecalho, [['debito']]);
+  const iCredito = guessColumn(cabecalho, [['credito']]);
+
+  let contaAtual = null;
+  const transacoes = [];
+  const regexNota = /nota fiscal\s+(\S+)\s+de\s+(.+?)\.?\s*$/i;
+  const regexCnpj = /(\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2})/;
+
+  for(let i = headerIdx + 1; i < rows.length; i++){
+    const row = rows[i];
+    if(!row) continue;
+    if(iConta >= 0 && row[iConta]) contaAtual = row[iConta];
+    const historico = iHistorico >= 0 ? row[iHistorico] : '';
+    if(!historico || /^SALDO (INICIAL|FINAL)$/i.test(normalizeStr(historico))) continue;
+
+    const m = historico.toString().match(regexNota);
+    if(!m) continue;
+
+    const numero = m[1].replace(/^0+(?=\d)/, '');
+    const fornecedor = m[2].trim();
+    const debito = parseFloat(iDebito >= 0 ? row[iDebito] : 0) || 0;
+    const credito = parseFloat(iCredito >= 0 ? row[iCredito] : 0) || 0;
+    const cnpjMatch = historico.toString().match(regexCnpj);
+
+    transacoes.push({
+      conta: contaAtual,
+      data: iData >= 0 ? row[iData] : null,
+      numero,
+      fornecedor,
+      fornecedorNormFull: normalizeFilename(fornecedor),
+      cnpjDigits: cnpjMatch ? cnpjMatch[1].replace(/\D/g, '') : '',
+      valor: debito > 0 ? debito : credito
+    });
+  }
+  return transacoes;
+}
+
+function prefixoComumTamanho(a, b){
+  const len = Math.min(a.length, b.length);
+  let i = 0;
+  while(i < len && a[i] === b[i]) i++;
+  return i;
+}
+
+function encontrarLancamentoRazao(entry, transacoes, usadas){
+  const numeroEntry = (entry.numero || '').replace(/^0+(?=\d)/, '');
+  if(!numeroEntry) return null;
+  const emitenteNormFull = normalizeFilename(entry.emitente);
+
+  for(let i = 0; i < transacoes.length; i++){
+    if(usadas.has(i)) continue;
+    const t = transacoes[i];
+    if(t.numero !== numeroEntry) continue;
+
+    if(t.cnpjDigits && entry.cnpjEmitenteDigits){
+      // CNPJ é o critério mais forte quando o razão traz um — mas raramente aparece
+      if(t.cnpjDigits !== entry.cnpjEmitenteDigits) continue;
+    } else if(emitenteNormFull.length >= 6 && t.fornecedorNormFull.length >= 6){
+      // sem CNPJ disponível: confirma pelo início real em comum entre os nomes,
+      // tolerando cadastros diferentes entre Qive e OneFlow para o mesmo fornecedor
+      if(prefixoComumTamanho(emitenteNormFull, t.fornecedorNormFull) < 6) continue;
+    }
+
+    usadas.add(i);
+    return t;
+  }
+  return null;
+}
+
+function processarRazao(file){
+  document.getElementById('st_err-razao').textContent = 'Lendo a planilha...';
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    let transacoes;
+    try{
+      const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array', cellDates:true});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true});
+      transacoes = extrairTransacoesRazao(rows);
+    }catch(err){
+      document.getElementById('st_err-razao').textContent = 'Não consegui ler essa planilha.';
+      return;
+    }
+    if(transacoes.length === 0){
+      document.getElementById('st_err-razao').textContent = 'Não encontrei lançamentos com o padrão "nota fiscal ... de ..." no histórico.';
+      return;
+    }
+
+    const candidatos = entries.filter(e => !e.contabilizada);
+
+    if(candidatos.length === 0){
+      document.getElementById('st_razaoStep1').style.display = 'none';
+      document.getElementById('st_razaoStep2').style.display = 'block';
+      const summaryEl = document.getElementById('st_razaoSummary');
+      summaryEl.className = 'import-summary empty';
+      summaryEl.textContent = 'Todas as notas já estão marcadas como Contabilizada — nada para conciliar.';
+      document.getElementById('st_razaoPreviewTable').innerHTML = '';
+      document.getElementById('st_razaoSemMatchTitulo').textContent = '';
+      document.getElementById('st_razaoSemMatchTable').innerHTML = '';
+      document.getElementById('st_btnRazaoConfirmar').style.display = 'none';
+      return;
+    }
+
+    const usadas = new Set();
+    razaoMatches = [];
+    candidatos.forEach(entry=>{
+      const t = encontrarLancamentoRazao(entry, transacoes, usadas);
+      if(t) razaoMatches.push({ entry, transacao: t });
+    });
+
+    document.getElementById('st_razaoStep1').style.display = 'none';
+    document.getElementById('st_razaoStep2').style.display = 'block';
+
+    const idsComMatch = new Set(razaoMatches.map(m => m.entry.id));
+    const semMatch = candidatos.filter(e => !idsComMatch.has(e.id));
+
+    const summaryEl = document.getElementById('st_razaoSummary');
+    if(razaoMatches.length === 0){
+      summaryEl.className = 'import-summary empty';
+      summaryEl.textContent = `Nenhuma das ${candidatos.length} nota(s) encontrou lançamento correspondente no razão. (${transacoes.length} lançamento(s) com nota fiscal lidos do razão.)`;
+    } else {
+      summaryEl.className = 'import-summary';
+      summaryEl.innerHTML = `<strong style="font-weight:500;color:var(--ink);">${razaoMatches.length} nota(s)</strong> encontradas no razão — serão marcadas como Lançada e Contabilizada juntas.
+        ${semMatch.length} nota(s) continuam sem lançamento correspondente no razão (ficam como estão).`;
+    }
+
+    document.getElementById('st_razaoPreviewTable').innerHTML = razaoMatches.length === 0 ? '' : `
+      <thead><tr><th>Fornecedor</th><th>Número</th><th>Código da conta</th><th>Nome da conta débito</th><th>Valor no razão</th></tr></thead>
+      <tbody>${razaoMatches.map(m=>{
+        const partes = (m.transacao.conta || '').toString().split(' - ');
+        const codigo = partes.length > 1 ? partes[0].trim() : '';
+        const nome = partes.length > 1 ? partes.slice(1).join(' - ').trim() : (m.transacao.conta || '');
+        return `<tr>
+        <td>${escapeHtml(m.entry.emitente)}</td>
+        <td>${escapeHtml(m.entry.numero)}</td>
+        <td>${escapeHtml(codigo)}</td>
+        <td>${escapeHtml(nome)}</td>
+        <td class="num-col">${fmtMoney(m.transacao.valor)}</td>
+      </tr>`;
+      }).join('')}</tbody>`;
+
+    document.getElementById('st_razaoSemMatchTitulo').textContent = semMatch.length > 0
+      ? `${semMatch.length} nota(s) SEM lançamento encontrado no razão (permanecem como estão):`
+      : 'Todas as notas foram encontradas no razão.';
+    document.getElementById('st_razaoSemMatchTable').innerHTML = semMatch.length === 0 ? '' : `
+      <thead><tr><th>Emitente</th><th>Número</th><th>Emissão</th><th>Valor</th></tr></thead>
+      <tbody>${semMatch.map(e=>`<tr>
+        <td>${escapeHtml(e.emitente)}</td>
+        <td>${escapeHtml(e.numero)}</td>
+        <td class="num-col">${fmtDate(e.dataEmissao)}</td>
+        <td class="num-col">${fmtMoney(e.valor)}</td>
+      </tr>`).join('')}</tbody>`;
+
+    document.getElementById('st_btnRazaoConfirmar').style.display = razaoMatches.length ? 'inline-block' : 'none';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function confirmarRazao(){
+  const hoje = new Date().toISOString().slice(0,10);
+  razaoMatches.forEach(m=>{
+    const idx = entries.findIndex(e => e.id === m.entry.id);
+    if(idx >= 0){
+      if(!entries[idx].lancada){
+        entries[idx].lancada = true;
+        entries[idx].dataLancamento = hoje;
+      }
+      const contaCompleta = (m.transacao.conta || '').toString();
+      const partesConta = contaCompleta.split(' - ');
+      entries[idx].contabilizada = true;
+      entries[idx].contaContabil = contaCompleta;
+      entries[idx].contaContabilCodigo = partesConta.length > 1 ? partesConta[0].trim() : '';
+      entries[idx].contaContabilNome = partesConta.length > 1 ? partesConta.slice(1).join(' - ').trim() : contaCompleta;
+      entries[idx].dataContabilizacao = hoje;
+    }
+  });
+  saveEntries();
+  closeRazaoModal();
+  render();
+  alert(`${razaoMatches.length} nota(s) marcadas como Lançada e Contabilizada.`);
+}
+
+document.getElementById('st_btnConciliarRazao').addEventListener('click', openRazaoModal);
+document.getElementById('st_btnRazaoCancelar').addEventListener('click', closeRazaoModal);
+document.getElementById('st_razaoOverlay').addEventListener('click', (ev)=>{ if(ev.target.id==='razaoOverlay') closeRazaoModal(); });
+document.getElementById('st_razaoDropzone').addEventListener('click', ()=>document.getElementById('st_razaoFileInput').click());
+document.getElementById('st_razaoDropzone').addEventListener('dragover', (ev)=>{ ev.preventDefault(); ev.currentTarget.classList.add('drag'); });
+document.getElementById('st_razaoDropzone').addEventListener('dragleave', (ev)=>{ ev.currentTarget.classList.remove('drag'); });
+document.getElementById('st_razaoDropzone').addEventListener('drop', (ev)=>{
+  ev.preventDefault(); ev.currentTarget.classList.remove('drag');
+  if(ev.dataTransfer.files[0]) processarRazao(ev.dataTransfer.files[0]);
+});
+document.getElementById('st_razaoFileInput').addEventListener('change', (ev)=>{ if(ev.target.files[0]) processarRazao(ev.target.files[0]); });
+document.getElementById('st_btnRazaoConfirmar').addEventListener('click', confirmarRazao);
+
+document.getElementById('st_btnApagarTudo').addEventListener('click', async ()=>{
+  if(entries.length === 0){ alert('Não há lançamentos para apagar.'); return; }
+  const total = entries.length;
+  if(!confirm(`Isso vai apagar TODOS os ${total} lançamento(s) e seus anexos, sem volta. Tem certeza?`)) return;
+  if(!confirm('Confirme mais uma vez: apagar tudo mesmo?')) return;
+
+  const btn = document.getElementById('st_btnApagarTudo');
+  btn.disabled = true;
+  const idsParaApagar = entries.map(e => e.id);
+  const comAnexo = entries.filter(e => e.temAnexo);
+  for(let i=0;i<comAnexo.length;i++){
+    btn.textContent = `Apagando anexos ${i+1}/${comAnexo.length}...`;
+    try{ await excluirAnexoFirestore(comAnexo[i].id); }catch(e){}
+    await sleep(80);
+  }
+  for(let i=0;i<idsParaApagar.length;i++){
+    btn.textContent = `Apagando lançamentos ${i+1}/${idsParaApagar.length}...`;
+    await excluirNotaFirestore(idsParaApagar[i]);
+    await sleep(60);
+  }
+  entries = [];
+  importedKeys = new Set();
+  await saveImportedKeys();
+  btn.textContent = 'Apagar todos os lançamentos';
+  btn.disabled = false;
+  render();
+  alert(`${total} lançamento(s) apagados. Pode reimportar do zero.`);
+});
+
+document.getElementById('st_btnApagarConciliacao').addEventListener('click', async ()=>{
+  const contabilizadas = entries.filter(e => e.contabilizada);
+  if(contabilizadas.length === 0){ alert('Não há notas contabilizadas para desfazer.'); return; }
+  if(!confirm(`Isso vai desfazer a conciliação de ${contabilizadas.length} nota(s) — elas voltam a ficar "Não contabilizada" (o status de Lançada no Omie não é afetado). Confirma?`)) return;
+
+  entries.forEach(e=>{
+    if(e.contabilizada){
+      e.contabilizada = false;
+      e.contaContabil = '';
+      e.contaContabilCodigo = '';
+      e.contaContabilNome = '';
+      e.dataContabilizacao = '';
+    }
+  });
+  saveEntries();
+  render();
+  alert(`Conciliação desfeita em ${contabilizadas.length} nota(s). Pode conciliar de novo quando quiser.`);
+});
+
+document.getElementById('st_btnApagarImportacaoQive').addEventListener('click', async ()=>{
+  const daQive = entries.filter(e => e.observacoes === 'Importado da Qive');
+  if(daQive.length === 0){ alert('Não há lançamentos importados da Qive para apagar (lançamentos manuais não são afetados).'); return; }
+  if(!confirm(`Isso vai apagar ${daQive.length} lançamento(s) importados da Qive (e seus anexos), mantendo os criados manualmente. Também libera essas notas para serem reimportadas depois. Confirma?`)) return;
+  if(!confirm('Confirme mais uma vez: apagar a importação da Qive mesmo?')) return;
+
+  const btn = document.getElementById('st_btnApagarImportacaoQive');
+  btn.disabled = true;
+  for(let i=0;i<daQive.length;i++){
+    btn.textContent = `Apagando ${i+1}/${daQive.length}...`;
+    if(daQive[i].temAnexo){
+      try{ await excluirAnexoFirestore(daQive[i].id); }catch(e){}
+    }
+    if(daQive[i].chave) importedKeys.delete(daQive[i].chave);
+    await sleep(80);
+  }
+  const idsRemover = new Set(daQive.map(e=>e.id));
+  entries = entries.filter(e => !idsRemover.has(e.id));
+  for(const id of idsRemover) await excluirNotaFirestore(id);
+  await saveImportedKeys();
+  btn.textContent = 'Apagar importação Qive';
+  btn.disabled = false;
+  render();
+  alert(`${daQive.length} lançamento(s) importados da Qive apagados. Pode reimportar a planilha.`);
+});
+populateSelects();
+loadEntries();
+loadImportedKeys();
+
 
 })();
 </script>
