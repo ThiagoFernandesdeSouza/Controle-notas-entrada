@@ -92,6 +92,33 @@
   .tab-btn{font-family:inherit;font-size:14px;font-weight:500;padding:10px 20px;border:none;background:none;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;}
   .tab-btn:hover{color:var(--ink);}
   .tab-btn.active{color:var(--ink);border-bottom-color:var(--accent);}
+
+  .modulos-nav{display:flex;gap:8px;margin-bottom:18px;}
+  .modulo-btn{font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;padding:10px 22px;border:none;border-radius:var(--radius-sm) var(--radius-sm) 0 0;background:var(--panel);color:var(--muted);cursor:pointer;border:1px solid var(--line);border-bottom:none;}
+  .modulo-btn.active{background:var(--ink);color:#fff;}
+  .modulo-btn:not(.active):hover{background:#EFEFE6;}
+
+  .btn.danger-outline{background:transparent;color:var(--red);border-color:var(--red);}
+  .btn.danger-outline:hover{background:var(--red-bg);}
+  .stat.critico{border-left-color:#C1502E;}
+  .stat.soon{border-left-color:var(--amber);}
+  tbody tr.overdue{background:var(--red-bg);}
+  tbody tr.overdue:hover{background:#F9DCDC;}
+  .prestador-name{font-weight:500;color:var(--ink);}
+  .badge.overdue{background:var(--red-bg);color:var(--red);}
+  .badge.critico{background:#FBE4DA;color:#C1502E;border:1px solid #C1502E;}
+  .badge.soon{background:var(--amber-bg);color:var(--amber);}
+  .badge.done{background:var(--teal-bg);color:var(--teal);}
+  .badge.cancelada{background:#EAEBE3;color:var(--muted);text-decoration:line-through;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;}
+  .form-grid .full{grid-column:1/-1;}
+  .form-grid label{font-size:12.5px;color:var(--muted);display:block;margin-bottom:4px;}
+  .form-grid select,.form-grid input,.form-grid textarea{width:100%;}
+  .radio-row{display:flex;gap:16px;align-items:center;padding-top:4px;}
+  .radio-row label{display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--text);margin:0;}
+  .modal.wide{max-width:760px;}
+  .file-name{font-size:12.5px;color:var(--ink-2);margin-top:8px;}
+  .link-btn{background:none;border:none;color:var(--accent);text-decoration:underline;cursor:pointer;font-size:12.5px;padding:0;font-family:inherit;}
   .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px;}
   .dash-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);padding:18px 20px;}
   .dash-card h3{font-family:'Source Serif 4',serif;font-weight:600;font-size:15px;color:var(--ink);margin:0 0 14px;}
@@ -135,6 +162,12 @@
   </div>
 </div>
 
+  <div class="modulos-nav">
+    <button type="button" class="modulo-btn active" data-modulo="notasEntrada">Notas de Entrada</button>
+    <button type="button" class="modulo-btn" data-modulo="nfts">NFTS</button>
+  </div>
+
+  <div id="moduloNotasEntrada">
 <div class="wrap">
 
   <div class="masthead">
@@ -315,6 +348,383 @@
     </div>
   </div>
 </div>
+  </div>
+
+  <div id="moduloNfts" style="display:none;">
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <h1>Controle de NFTS</h1>
+      <p>Nota Fiscal Eletrônica do Tomador/Intermediário de Serviços — serviços tomados, Prefeitura de São Paulo</p>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn secondary" id="nfts_btnImportar">Importar do Qive</button>
+      <button class="btn secondary" id="nfts_btnImportarPdfs">Importar PDFs (ZIP)</button>
+      <button class="btn secondary" id="nfts_btnLimparAnexos">Remover todos os anexos</button>
+      <button class="btn secondary" id="nfts_btnRemoverDuplicados">Remover duplicados</button>
+      <button class="btn secondary" id="btnMarcarCanceladas">Marcar canceladas (planilha)</button>
+      <button class="btn" id="nfts_btnNovo">Novo lançamento</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat warn">
+      <span class="num" id="statAtrasadas">0</span>
+      <span class="label">NFTS atrasadas</span>
+    </div>
+    <div class="stat critico">
+      <span class="num" id="statCritico">0</span>
+      <span class="label">Vencem em até 3 dias</span>
+    </div>
+    <div class="stat soon">
+      <span class="num" id="statVenceBreve">0</span>
+      <span class="label">Vencem entre 4 e 7 dias</span>
+    </div>
+    <div class="stat ok">
+      <span class="num" id="nfts_statPendentes">0</span>
+      <span class="label">Pendentes no total</span>
+    </div>
+    <div class="stat">
+      <span class="num" id="statEmitidas">0</span>
+      <span class="label">Emitidas este mês</span>
+    </div>
+  </div>
+
+  <div class="filters" style="margin-bottom:14px;">
+    <div class="field" style="flex:1;">
+      <label for="responsavelEmail">E-mail do responsável pela emissão</label>
+      <input type="email" id="responsavelEmail" placeholder="nome@empresa.com.br" style="width:100%;max-width:340px;">
+    </div>
+    <div class="field">
+      <label for="pdfEscopo">PDF com</label>
+      <select id="pdfEscopo">
+        <option value="todas">Todas as pendentes</option>
+        <option value="com_retencao">Pendentes com retenção</option>
+        <option value="sem_retencao">Pendentes sem retenção</option>
+        <option value="filtrado">O que está filtrado na tela</option>
+      </select>
+    </div>
+    <button class="btn secondary" id="btnGerarPdf">Baixar PDF</button>
+    <button class="btn secondary" id="btnPrepararEmail">Preparar e-mail</button>
+  </div>
+
+  <div class="filters">
+    <div class="field">
+      <label for="fBusca">Prestador</label>
+      <input type="text" id="fBusca" placeholder="Buscar por nome">
+    </div>
+    <div class="field">
+      <label for="fEmpreendimento">Empreendimento</label>
+      <select id="fEmpreendimento"><option value="">Todos</option></select>
+    </div>
+    <div class="field">
+      <label for="fStatus">Situação</label>
+      <select id="fStatus">
+        <option value="">Todas</option>
+        <option value="nao_cancelada">Diferente de cancelada</option>
+        <option value="atrasada">Atrasadas</option>
+        <option value="critico">Críticas (≤3 dias)</option>
+        <option value="soon">Vence em breve (4-7 dias)</option>
+        <option value="pendente">Pendentes (todas)</option>
+        <option value="emitida">Emitidas</option>
+        <option value="cancelada">Canceladas</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="fRetencao">Retenção ISS</label>
+      <select id="fRetencao">
+        <option value="">Todas</option>
+        <option value="sim">Retido</option>
+        <option value="nao">Não retido</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="fDataCampo">Período por</label>
+      <select id="fDataCampo">
+        <option value="dataServico">Data de prestação</option>
+        <option value="dataEmissao">Data de emissão</option>
+        <option value="prazo">Prazo NFTS</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="nfts_fDataDe">De</label>
+      <input type="date" id="nfts_fDataDe">
+    </div>
+    <div class="field">
+      <label for="nfts_fDataAte">Até</label>
+      <input type="date" id="nfts_fDataAte">
+    </div>
+    <button class="btn secondary" id="nfts_btnLimpar">Limpar filtros</button>
+  </div>
+
+  <div id="nfts_tableContainer"></div>
+
+  <p class="footnote">
+    Prazo interno de controle: quando há retenção de ISS pelo tomador, o app usa o dia 7 do mês subsequente
+    (3 dias de folga antes do prazo legal, que é dia 10, conforme o Manual da NFTS da Prefeitura de São Paulo).
+    Quando não há retenção, o prazo legal é dia 30, sem folga aplicada.
+    Os dados ficam salvos apenas neste dispositivo/conta.
+  </p>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="nfts_modalTitle">Novo lançamento</h2>
+    <form id="nfts_entryForm">
+      <input type="hidden" id="nfts_entryId">
+      <div class="form-grid">
+        <div class="full">
+          <label for="prestador">Prestador de serviço</label>
+          <input type="text" id="prestador" placeholder="Razão social do prestador">
+          <p class="error-text" id="err-prestador"></p>
+        </div>
+
+        <div>
+          <label for="empreendimento">Empreendimento / entidade</label>
+          <select id="empreendimento"></select>
+        </div>
+        <div id="outroWrap" style="display:none;">
+          <label for="empreendimentoOutro">Especifique</label>
+          <input type="text" id="empreendimentoOutro" placeholder="Nome do empreendimento">
+        </div>
+
+        <div class="full">
+          <label for="motivo">Motivo da obrigatoriedade</label>
+          <select id="motivo">
+            <option value="fora_sp">Prestador estabelecido fora do município de São Paulo</option>
+            <option value="sp_nao_emitiu">Prestador de SP obrigado a NFS-e e não emitiu</option>
+            <option value="sp_sem_recibo">Prestador de SP desobrigado de NFS-e e sem recibo válido</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="dataServico">Data da prestação do serviço</label>
+          <input type="date" id="dataServico">
+          <p class="error-text" id="err-dataServico"></p>
+        </div>
+        <div>
+          <label for="nfts_valor">Valor do serviço (R$)</label>
+          <input type="number" step="0.01" min="0" id="nfts_valor" placeholder="0,00">
+        </div>
+
+        <div class="full">
+          <label>Houve retenção de ISS pelo tomador?</label>
+          <div class="radio-row">
+            <label><input type="radio" name="retencao" value="sim"> Sim — prazo interno dia 7 (legal: dia 10)</label>
+            <label><input type="radio" name="retencao" value="nao" checked> Não — prazo dia 30</label>
+          </div>
+        </div>
+
+        <div class="full">
+          <label>Situação</label>
+          <div class="radio-row">
+            <label><input type="radio" name="status" value="pendente" checked> Pendente</label>
+            <label><input type="radio" name="status" value="emitida"> Emitida</label>
+            <label><input type="radio" name="status" value="cancelada"> Cancelada</label>
+          </div>
+        </div>
+
+        <div id="dataEmissaoWrap" style="display:none;">
+          <label for="nfts_dataEmissao">Data de emissão da NFTS</label>
+          <input type="date" id="nfts_dataEmissao">
+        </div>
+
+        <div class="full">
+          <label for="nfts_observacoes">Observações</label>
+          <textarea id="nfts_observacoes" rows="2" placeholder="Opcional"></textarea>
+        </div>
+
+        <div class="full">
+          <label for="nfts_anexoPdf">Anexar DANFSe / comprovante (PDF)</label>
+          <input type="file" id="nfts_anexoPdf" accept="application/pdf">
+          <p class="hint" id="nfts_anexoStatus">Nenhum arquivo anexado.</p>
+          <button type="button" class="link-btn" id="nfts_btnRemoverAnexo" style="display:none;">Remover anexo</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" id="nfts_btnCancelar">Cancelar</button>
+        <button type="submit" class="btn" id="nfts_btnSalvar">Salvar lançamento</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="overlay" id="nfts_importOverlay">
+  <div class="modal wide">
+    <h2>Importar NFS-e tomadas da Qive</h2>
+    <div class="steps">
+      <div class="step-dot active" id="nfts_stepDot1">1. Arquivo</div>
+      <div class="step-dot" id="nfts_stepDot2">2. Colunas</div>
+      <div class="step-dot" id="nfts_stepDot3">3. Conferir e importar</div>
+    </div>
+
+    <div id="nfts_importStep1">
+      <p class="hint" style="margin-bottom:12px;">
+        Na Qive, abra <strong style="font-weight:500;">NFS-e → Tomadas</strong>, filtre o período desejado e use
+        <strong style="font-weight:500;">Baixar e compartilhar</strong> (ou Relatórios) para exportar em CSV ou Excel.
+        Depois envie o arquivo aqui.
+      </p>
+      <div class="dropzone" id="nfts_dropzone">
+        <strong>Clique para escolher o arquivo</strong>
+        Aceita .csv, .xlsx ou .xls exportado da Qive
+      </div>
+      <input type="file" id="nfts_fileInput" accept=".csv,.xlsx,.xls" style="display:none;">
+      <p class="error-text" id="nfts_err-file"></p>
+    </div>
+
+    <div id="nfts_importStep2" style="display:none;">
+      <p class="hint" style="margin-bottom:12px;">Confirme quais colunas do arquivo correspondem a cada campo.</p>
+      <div class="map-grid">
+        <div>
+          <label for="mapPrestador">Prestador / razão social</label>
+          <select id="mapPrestador"></select>
+        </div>
+        <div>
+          <label for="mapPrestadorCnpj">CPF/CNPJ do prestador (evita casar PDF errado)</label>
+          <select id="mapPrestadorCnpj"></select>
+        </div>
+        <div>
+          <label for="mapMunicipio">Município do prestador</label>
+          <select id="mapMunicipio"></select>
+        </div>
+        <div>
+          <label for="nfts_mapData">Data (emissão ou competência)</label>
+          <select id="nfts_mapData"></select>
+        </div>
+        <div>
+          <label for="nfts_mapValor">Valor</label>
+          <select id="nfts_mapValor"></select>
+        </div>
+        <div>
+          <label for="nfts_mapChave">Chave de acesso / cód. verificação (evita duplicar)</label>
+          <select id="nfts_mapChave"></select>
+        </div>
+        <div>
+          <label for="nfts_mapNumero">Número da nota (para casar PDFs depois)</label>
+          <select id="nfts_mapNumero"></select>
+        </div>
+        <div>
+          <label for="mapTomadorCnpj">CNPJ do tomador (identifica matriz/filial)</label>
+          <select id="mapTomadorCnpj"></select>
+        </div>
+        <div>
+          <label for="mapRetencao">Retenção de ISS (Sim/Não)</label>
+          <select id="mapRetencao"></select>
+        </div>
+        <div>
+          <label for="mapCancelada">Nota cancelada (Sim/Não) — exclui da importação</label>
+          <select id="mapCancelada"></select>
+        </div>
+        <div>
+          <label for="mapEmpreendimentoFixo">Empreendimento padrão (se não identificar pelo CNPJ)</label>
+          <select id="mapEmpreendimentoFixo"></select>
+        </div>
+      </div>
+      <button class="btn secondary" id="nfts_btnGerarPreview">Avançar</button>
+    </div>
+
+    <div id="nfts_importStep3" style="display:none;">
+      <div class="import-summary" id="nfts_importSummary"></div>
+      <div class="preview-wrap">
+        <table id="nfts_previewTable"></table>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="nfts_btnImportCancelar">Cancelar</button>
+      <button type="button" class="btn" id="nfts_btnImportConfirmar" style="display:none;">Importar lançamentos</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="nfts_pdfZipOverlay">
+  <div class="modal wide">
+    <h2>Anexar PDFs em lote (ZIP da Qive)</h2>
+    <div id="nfts_pdfZipStep1">
+      <p class="hint" style="margin-bottom:12px;">
+        Na Qive, selecione as notas e use <strong style="font-weight:500;">Baixar e compartilhar → Baixar PDFs em ZIP</strong>.
+        Envie esse ZIP aqui — o app tenta casar cada PDF com o lançamento correspondente pelo número da nota ou pelo prestador.
+      </p>
+      <div class="dropzone" id="nfts_pdfZipDropzone">
+        <strong>Clique para escolher o arquivo ZIP</strong>
+        Aceita .zip com os PDFs exportados da Qive
+      </div>
+      <input type="file" id="nfts_pdfZipInput" accept=".zip" style="display:none;">
+      <p class="error-text" id="nfts_err-pdfzip"></p>
+    </div>
+
+    <div id="nfts_pdfZipStep2" style="display:none;">
+      <div class="import-summary" id="nfts_pdfZipSummary"></div>
+      <div class="preview-wrap">
+        <table id="nfts_pdfZipPreviewTable"></table>
+      </div>
+      <p class="hint" id="nfts_pdfZipSemAnexoTitulo" style="margin:16px 0 6px;"></p>
+      <div class="preview-wrap">
+        <table id="nfts_pdfZipSemAnexoTable"></table>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="nfts_btnPdfZipCancelar">Cancelar</button>
+      <button type="button" class="btn" id="nfts_btnPdfZipConfirmar" style="display:none;">Anexar PDFs casados</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="reconcileOverlay">
+  <div class="modal wide">
+    <h2>Marcar canceladas a partir da planilha</h2>
+    <div id="reconcileStep1">
+      <p class="hint" style="margin-bottom:12px;">
+        Envie a mesma planilha exportada da Qive (coluna "Cancelada"). O app reconhece os lançamentos
+        que já existem no app (pela chave) e marca como <strong style="font-weight:500;">Cancelada</strong>
+        só os que a Qive já indica como cancelados — sem criar lançamentos novos.
+      </p>
+      <div class="dropzone" id="reconcileDropzone">
+        <strong>Clique para escolher a planilha</strong>
+        Aceita .xlsx, .xls ou .csv
+      </div>
+      <input type="file" id="reconcileFileInput" accept=".csv,.xlsx,.xls" style="display:none;">
+      <p class="error-text" id="err-reconcile"></p>
+    </div>
+
+    <div id="reconcileStep2" style="display:none;">
+      <p class="hint" style="margin-bottom:12px;">Confirme as colunas.</p>
+      <div class="map-grid">
+        <div>
+          <label for="mapReconChave">Chave de acesso / cód. verificação</label>
+          <select id="mapReconChave"></select>
+        </div>
+        <div>
+          <label for="mapReconCancelada">Cancelada (Sim/Não)</label>
+          <select id="mapReconCancelada"></select>
+        </div>
+        <div>
+          <label for="mapReconDataCancel">Data de cancelamento</label>
+          <select id="mapReconDataCancel"></select>
+        </div>
+      </div>
+      <button class="btn secondary" id="btnReconGerarPreview">Avançar</button>
+    </div>
+
+    <div id="reconcileStep3" style="display:none;">
+      <div class="import-summary" id="reconcileSummary"></div>
+      <div class="preview-wrap">
+        <table id="reconcilePreviewTable"></table>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="btnReconCancelar">Cancelar</button>
+      <button type="button" class="btn" id="btnReconConfirmar" style="display:none;">Marcar como canceladas</button>
+    </div>
+  </div>
+</div>
+
+  </div>
 
 <div class="overlay" id="entryOverlay">
   <div class="modal">
@@ -509,6 +919,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
 // ======================= CONFIGURAÇÃO DO FIREBASE =======================
 // Cole aqui o firebaseConfig copiado do painel do Firebase
@@ -543,6 +955,13 @@ document.getElementById('btnEntrarGoogle').addEventListener('click', ()=>{
   const provider = new firebase.auth.GoogleAuthProvider();
   authFirebase.signInWithPopup(provider).catch(err=>{
     console.error('Falha no login', err);
+    if(err.code === 'auth/operation-not-supported-in-this-environment'){
+      document.getElementById('loginErro').textContent = 'Login com Google não funciona em arquivo local. Tentando um modo temporário de migração...';
+      authFirebase.signInAnonymously().catch(err2=>{
+        document.getElementById('loginErro').textContent = `Não consegui nem no modo temporário (${err2.code || err2.message}).`;
+      });
+      return;
+    }
     document.getElementById('loginErro').textContent = `Não consegui fazer login (${err.code || err.message}).`;
   });
 });
@@ -550,6 +969,12 @@ document.getElementById('btnEntrarGoogle').addEventListener('click', ()=>{
 authFirebase.onAuthStateChanged(user=>{
   if(!user){
     document.getElementById('telaLogin').style.display = 'flex';
+    return;
+  }
+  if(user.isAnonymous){
+    document.getElementById('telaLogin').style.display = 'none';
+    document.getElementById('usuarioLogado').textContent = 'Modo temporário de migração (sem login) — troque para o link do GitHub Pages e faça login com Google assim que possível.';
+    firebaseProntoResolve();
     return;
   }
   const email = (user.email || '').toLowerCase();
@@ -582,16 +1007,45 @@ function abrirIDB(){
   });
   return idbPromise;
 }
+// Banco legado do app antigo e separado de NFTS (controle-nfts.html), mantido só
+// para leitura de fallback: quando este sistema unificado roda fora do Claude,
+// 'notas-entrada-db' nunca teve os dados de NFTS — eles ficaram gravados nesse
+// banco à parte, então uma leitura de chave 'nfts:*' que não achar nada em
+// 'notas-entrada-db' tenta aqui antes de desistir.
+let idbLegadoNftsPromise = null;
+function abrirIDBLegadoNfts(){
+  if(idbLegadoNftsPromise) return idbLegadoNftsPromise;
+  idbLegadoNftsPromise = new Promise((resolve, reject)=>{
+    const req = indexedDB.open('nfts-app-db');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return idbLegadoNftsPromise;
+}
+function lerDeIDB(db, key){
+  return new Promise((resolve, reject)=>{
+    let tx;
+    try{ tx = db.transaction('kv', 'readonly'); }catch(e){ reject(e); return; }
+    const req = tx.objectStore('kv').get(key);
+    req.onsuccess = () => { if(req.result === undefined) reject(new Error('not found')); else resolve({key, value:req.result, shared:false}); };
+    req.onerror = () => reject(req.error);
+  });
+}
 const storage = {
   async get(key){
     if(hasClaudeStorage) return window.storage.get(key, false);
     const db = await abrirIDB();
-    return new Promise((resolve, reject)=>{
-      const tx = db.transaction('kv', 'readonly');
-      const req = tx.objectStore('kv').get(key);
-      req.onsuccess = () => { if(req.result === undefined) reject(new Error('not found')); else resolve({key, value:req.result, shared:false}); };
-      req.onerror = () => reject(req.error);
-    });
+    try{
+      return await lerDeIDB(db, key);
+    }catch(e){
+      if(key.startsWith('nfts:')){
+        try{
+          const dbLegado = await abrirIDBLegadoNfts();
+          return await lerDeIDB(dbLegado, key);
+        }catch(e2){ /* também não achou no banco legado */ }
+      }
+      throw e;
+    }
   },
   async set(key, value){
     if(hasClaudeStorage) return window.storage.set(key, value, false);
@@ -2412,6 +2866,1635 @@ populateSelects();
 loadEntries();
 loadImportedKeys();
 migrarDadosAntigosSeNecessario().then(() => migrarAnexosAntigosSeNecessario());
+
+// ---- Troca entre módulos (Notas de Entrada / NFTS) ----
+document.querySelectorAll('.modulo-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.modulo-btn').forEach(b => b.classList.toggle('active', b === btn));
+    const modulo = btn.dataset.modulo;
+    document.getElementById('moduloNotasEntrada').style.display = modulo === 'notasEntrada' ? 'block' : 'none';
+    document.getElementById('moduloNfts').style.display = modulo === 'nfts' ? 'block' : 'none';
+  });
+});
+</script>
+
+<script>
+(function(){
+'use strict';
+
+const EMPREENDIMENTOS = [
+  "Viva Gestão — Matriz (SP)",
+  "Viva Gestão — Filial (SC)",
+  "Outro"
+];
+
+const MOTIVO_LABEL = {
+  fora_sp: "Prestador fora de SP",
+  sp_nao_emitiu: "SP — não emitiu NFS-e",
+  sp_sem_recibo: "SP — sem recibo válido"
+};
+
+let entries = [];
+let pendingAnexoBase64;
+let pendingAnexoNome;
+let removerAnexoFlag = false;
+const NFTS_COLLECTION = 'nfts';
+let primeiraCargaResolveNfts;
+const primeiraCargaPromiseNfts = new Promise(resolve => { primeiraCargaResolveNfts = resolve; });
+
+async function loadEntries(){
+  await firebaseProntoPromise;
+  let primeira = true;
+  db.collection(NFTS_COLLECTION).onSnapshot(snapshot=>{
+    entries = snapshot.docs.map(doc => doc.data());
+    render();
+    if(primeira){ primeira = false; primeiraCargaResolveNfts(); }
+  }, err=>{ console.error('Erro ao sincronizar notas NFTS', err); });
+}
+
+async function saveEntries(){
+  await firebaseProntoPromise;
+  try{
+    const batch = db.batch();
+    entries.forEach(e=>{ batch.set(db.collection(NFTS_COLLECTION).doc(e.id), e); });
+    await batch.commit();
+  }catch(e){
+    console.error('Falha ao salvar', e);
+  }
+}
+
+async function excluirNotaFirestoreNfts(id){
+  try{ await db.collection(NFTS_COLLECTION).doc(id).delete(); }catch(e){ console.error('Falha ao excluir', e); }
+}
+
+// ---- Anexos (PDF) guardados em pedaços no Firestore ----
+const NFTS_ANEXO_CHUNK_SIZE = 700000;
+
+async function salvarAnexoFirestoreNfts(id, dataUrl, nome){
+  await firebaseProntoPromise;
+  const partes = [];
+  for(let i = 0; i < dataUrl.length; i += NFTS_ANEXO_CHUNK_SIZE){
+    partes.push(dataUrl.slice(i, i + NFTS_ANEXO_CHUNK_SIZE));
+  }
+  const partesRef = db.collection('anexosNfts').doc(id).collection('partes');
+  for(let inicio = 0; inicio < partes.length; inicio += 400){
+    const batch = db.batch();
+    for(let i = inicio; i < Math.min(inicio + 400, partes.length); i++){
+      batch.set(partesRef.doc(String(i)), { data: partes[i] });
+    }
+    await batch.commit();
+  }
+  await db.collection('anexosNfts').doc(id).set({ numChunks: partes.length, nome: nome || '' });
+}
+
+async function buscarAnexoFirestoreNfts(id){
+  await firebaseProntoPromise;
+  const manifesto = await db.collection('anexosNfts').doc(id).get();
+  if(!manifesto.exists) return null;
+  const numChunks = manifesto.data().numChunks || 0;
+  const partesSnap = await db.collection('anexosNfts').doc(id).collection('partes').get();
+  const porIndice = {};
+  partesSnap.forEach(doc => { porIndice[doc.id] = doc.data().data; });
+  let completo = '';
+  for(let i = 0; i < numChunks; i++){ completo += porIndice[String(i)] || ''; }
+  return completo || null;
+}
+
+async function excluirAnexoFirestoreNfts(id){
+  await firebaseProntoPromise;
+  try{
+    const partesSnap = await db.collection('anexosNfts').doc(id).collection('partes').get();
+    const batch = db.batch();
+    partesSnap.forEach(doc => batch.delete(doc.ref));
+    if(!partesSnap.empty) await batch.commit();
+    await db.collection('anexosNfts').doc(id).delete();
+  }catch(e){}
+}
+
+function uid(){
+  return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+
+function daysInMonth(year, month1based){
+  return new Date(year, month1based, 0).getDate();
+}
+
+function calcPrazo(dataServicoISO, retencao){
+  const [y, m] = dataServicoISO.split('-').map(Number);
+  let targetYear = y;
+  let targetMonth = m + 1;
+  if(targetMonth > 12){ targetMonth = 1; targetYear += 1; }
+  const wantDay = retencao === 'sim' ? 7 : 30;
+  const finalDay = Math.min(wantDay, daysInMonth(targetYear, targetMonth));
+  return new Date(targetYear, targetMonth - 1, finalDay);
+}
+
+function fmtDate(d){
+  if(!(d instanceof Date)) d = new Date(d);
+  return d.toLocaleDateString('pt-BR');
+}
+
+function fmtMoney(v){
+  const n = Number(v) || 0;
+  return n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+}
+
+function todayZero(){
+  const t = new Date();
+  t.setHours(0,0,0,0);
+  return t;
+}
+
+function getSituacao(entry){
+  const prazo = calcPrazo(entry.dataServico, entry.retencao);
+  if(entry.status === 'cancelada'){
+    return {key:'cancelada', label:'Cancelada', prazo};
+  }
+  if(entry.status === 'emitida'){
+    return {key:'emitida', label:'Emitida', prazo};
+  }
+  const today = todayZero();
+  const diffDays = Math.round((prazo - today) / 86400000);
+  if(diffDays < 0) return {key:'atrasada', label:'Atrasada', prazo, diffDays};
+  if(diffDays <= 3) return {key:'critico', label:'Crítico', prazo, diffDays};
+  if(diffDays <= 7) return {key:'soon', label:'Vence em breve', prazo, diffDays};
+  return {key:'ok', label:'Em dia', prazo, diffDays};
+}
+
+function populateSelects(){
+  const empSelect = document.getElementById('empreendimento');
+  const fEmp = document.getElementById('fEmpreendimento');
+  empSelect.innerHTML = '';
+  EMPREENDIMENTOS.forEach(name=>{
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    empSelect.appendChild(opt);
+  });
+  fEmp.innerHTML = '<option value="">Todos</option>';
+  EMPREENDIMENTOS.filter(n=>n!=='Outro').forEach(name=>{
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    fEmp.appendChild(opt);
+  });
+}
+
+function currentMonthKey(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+
+function renderStats(list){
+  let atrasadas=0, critico=0, soon=0, pendentes=0, emitidasMes=0;
+  const nowKey = currentMonthKey(new Date());
+  list.forEach(e=>{
+    const s = getSituacao(e);
+    if(e.status === 'pendente'){
+      pendentes++;
+      if(s.key==='atrasada') atrasadas++;
+      if(s.key==='critico') critico++;
+      if(s.key==='soon') soon++;
+    } else if(e.status === 'emitida' && e.dataEmissao && currentMonthKey(new Date(e.dataEmissao)) === nowKey){
+      emitidasMes++;
+    }
+  });
+  document.getElementById('statAtrasadas').textContent = atrasadas;
+  document.getElementById('statCritico').textContent = critico;
+  document.getElementById('statVenceBreve').textContent = soon;
+  document.getElementById('nfts_statPendentes').textContent = pendentes;
+  document.getElementById('statEmitidas').textContent = emitidasMes;
+}
+
+function getFiltered(){
+  const busca = document.getElementById('fBusca').value.trim().toLowerCase();
+  const emp = document.getElementById('fEmpreendimento').value;
+  const status = document.getElementById('fStatus').value;
+  const retencao = document.getElementById('fRetencao').value;
+  const dataCampo = document.getElementById('fDataCampo').value;
+  const dataDe = document.getElementById('nfts_fDataDe').value;
+  const dataAte = document.getElementById('nfts_fDataAte').value;
+
+  return entries.filter(e=>{
+    if(busca && !e.prestador.toLowerCase().includes(busca)) return false;
+    if(emp && e.empreendimento !== emp) return false;
+    if(retencao && e.retencao !== retencao) return false;
+    if(status){
+      const s = getSituacao(e);
+      if(status === 'nao_cancelada' && e.status === 'cancelada') return false;
+      if(status === 'pendente' && e.status !== 'pendente') return false;
+      if(status === 'atrasada' && s.key !== 'atrasada') return false;
+      if(status === 'critico' && s.key !== 'critico') return false;
+      if(status === 'soon' && s.key !== 'soon') return false;
+      if(status === 'emitida' && e.status !== 'emitida') return false;
+      if(status === 'cancelada' && e.status !== 'cancelada') return false;
+    }
+    if(dataDe || dataAte){
+      let valorData;
+      if(dataCampo === 'dataEmissao') valorData = e.dataEmissao;
+      else if(dataCampo === 'prazo') valorData = calcPrazo(e.dataServico, e.retencao).toISOString().slice(0,10);
+      else valorData = e.dataServico;
+      if(!valorData) return false;
+      if(dataDe && valorData < dataDe) return false;
+      if(dataAte && valorData > dataAte) return false;
+    }
+    return true;
+  });
+}
+
+function sortEntries(list){
+  const order = {atrasada:0, critico:1, soon:2, ok:3, emitida:4, cancelada:5};
+  return [...list].sort((a,b)=>{
+    const sa = getSituacao(a), sb = getSituacao(b);
+    if(order[sa.key] !== order[sb.key]) return order[sa.key]-order[sb.key];
+    return sa.prazo - sb.prazo;
+  });
+}
+
+function renderTable(list){
+  const container = document.getElementById('nfts_tableContainer');
+  if(entries.length === 0){
+    container.innerHTML = `<div class="empty">
+      <strong>Nenhum lançamento ainda</strong>
+      Registre o primeiro serviço tomado para começar a controlar os prazos de NFTS.
+    </div>`;
+    return;
+  }
+  if(list.length === 0){
+    container.innerHTML = `<div class="empty">
+      <strong>Nada encontrado</strong>
+      Ajuste os filtros para ver os lançamentos.
+    </div>`;
+    return;
+  }
+  const rows = list.map(e=>{
+    const s = getSituacao(e);
+    const badgeClass = s.key === 'emitida' ? 'done' : s.key;
+    const rowClass = s.key === 'atrasada' ? 'overdue' : '';
+    const empLabel = e.empreendimento === 'Outro' && e.empreendimentoOutro ? e.empreendimentoOutro : e.empreendimento;
+    return `<tr class="${rowClass}">
+      <td>
+        <div class="prestador-name">${escapeHtml(e.prestador)}</div>
+        <div class="sub">${MOTIVO_LABEL[e.motivo] || ''}${e.status === 'cancelada' && e.dataCancelamento ? ` · Cancelada em ${fmtDate(e.dataCancelamento)}` : ''}</div>
+      </td>
+      <td>${escapeHtml(empLabel)}</td>
+      <td class="num-col">${fmtDate(e.dataServico)}</td>
+      <td>${e.retencao === 'sim' ? 'Sim' : 'Não'}</td>
+      <td class="num-col">${fmtMoney(e.valor)}</td>
+      <td class="num-col">${fmtDate(s.prazo)}</td>
+      <td><span class="badge ${badgeClass}">${s.label}</span></td>
+      <td>
+        <div class="row-actions">
+          ${e.temAnexo ? `<button class="icon-btn" data-action="ver-anexo" data-id="${e.id}">PDF</button>
+          <button class="icon-btn" data-action="remover-anexo" data-id="${e.id}">Remover anexo</button>` : ''}
+          <button class="icon-btn" data-action="edit" data-id="${e.id}">Editar</button>
+          <button class="icon-btn" data-action="delete" data-id="${e.id}">Excluir</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  container.innerHTML = `<table>
+    <thead>
+      <tr>
+        <th>Prestador</th>
+        <th>Empreendimento</th>
+        <th>Prestação</th>
+        <th>Retenção ISS</th>
+        <th>Valor</th>
+        <th>Prazo NFTS</th>
+        <th>Situação</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  container.querySelectorAll('[data-action="edit"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>openModal(btn.dataset.id));
+  });
+  container.querySelectorAll('[data-action="delete"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>deleteEntry(btn.dataset.id));
+  });
+  container.querySelectorAll('[data-action="ver-anexo"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>verAnexo(btn.dataset.id));
+  });
+  container.querySelectorAll('[data-action="remover-anexo"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>removerAnexoUnico(btn.dataset.id));
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function render(){
+  const filtered = sortEntries(getFiltered());
+  renderStats(entries);
+  renderTable(filtered);
+}
+
+async function verAnexo(id){
+  try{
+    const dataUrl = await buscarAnexoFirestoreNfts(id);
+    if(!dataUrl){
+      alert('Anexo não encontrado.');
+      return;
+    }
+    const w = window.open();
+    w.document.write(`<iframe src="${dataUrl}" style="border:none;width:100%;height:100vh;"></iframe>`);
+  }catch(e){
+    alert('Não consegui abrir o anexo.');
+  }
+}
+
+async function removerAnexoUnico(id){
+  const entry = entries.find(e => e.id === id);
+  if(!entry) return;
+  const confirmou = confirm(`Remover o anexo de "${entry.prestador}"?`);
+  if(!confirmou) return;
+  try{ await excluirAnexoFirestoreNfts(id); }catch(e){}
+  const idx = entries.findIndex(e => e.id === id);
+  if(idx >= 0){
+    entries[idx].temAnexo = false;
+    entries[idx].anexoNome = '';
+  }
+  saveEntries();
+  render();
+}
+
+function deleteEntry(id){
+  entries = entries.filter(e=>e.id !== id);
+  excluirNotaFirestoreNfts(id);
+  excluirAnexoFirestoreNfts(id).catch(()=>{});
+  render();
+}
+
+function openModal(id){
+  const form = document.getElementById('nfts_entryForm');
+  form.reset();
+  document.getElementById('err-prestador').textContent='';
+  document.getElementById('err-dataServico').textContent='';
+  document.getElementById('outroWrap').style.display='none';
+  document.getElementById('dataEmissaoWrap').style.display='none';
+  pendingAnexoBase64 = undefined;
+  removerAnexoFlag = false;
+  document.getElementById('nfts_anexoStatus').textContent = 'Nenhum arquivo anexado.';
+  document.getElementById('nfts_btnRemoverAnexo').style.display = 'none';
+
+  if(id){
+    const e = entries.find(x=>x.id===id);
+    if(!e) return;
+    document.getElementById('nfts_modalTitle').textContent = 'Editar lançamento';
+    document.getElementById('nfts_entryId').value = e.id;
+    document.getElementById('prestador').value = e.prestador;
+    document.getElementById('empreendimento').value = e.empreendimento;
+    document.getElementById('empreendimentoOutro').value = e.empreendimentoOutro || '';
+    document.getElementById('motivo').value = e.motivo;
+    document.getElementById('dataServico').value = e.dataServico;
+    document.getElementById('nfts_valor').value = e.valor;
+    document.querySelector(`input[name="retencao"][value="${e.retencao}"]`).checked = true;
+    document.querySelector(`input[name="status"][value="${e.status}"]`).checked = true;
+    document.getElementById('nfts_dataEmissao').value = e.dataEmissao || '';
+    document.getElementById('nfts_observacoes').value = e.observacoes || '';
+    if(e.empreendimento === 'Outro') document.getElementById('outroWrap').style.display='block';
+    if(e.status === 'emitida') document.getElementById('dataEmissaoWrap').style.display='block';
+    if(e.temAnexo){
+      document.getElementById('nfts_anexoStatus').textContent = `Anexado: ${e.anexoNome || 'arquivo.pdf'}`;
+      document.getElementById('nfts_btnRemoverAnexo').style.display = 'inline-block';
+    }
+  } else {
+    document.getElementById('nfts_modalTitle').textContent = 'Novo lançamento';
+    document.getElementById('nfts_entryId').value = '';
+  }
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+}
+
+document.getElementById('nfts_btnNovo').addEventListener('click', ()=>openModal(null));
+document.getElementById('nfts_btnCancelar').addEventListener('click', closeModal);
+document.getElementById('overlay').addEventListener('click', (ev)=>{
+  if(ev.target.id === 'overlay') closeModal();
+});
+document.getElementById('nfts_btnLimpar').addEventListener('click', ()=>{
+  document.getElementById('fBusca').value='';
+  document.getElementById('fEmpreendimento').value='';
+  document.getElementById('fStatus').value='';
+  document.getElementById('fRetencao').value='';
+  document.getElementById('fDataCampo').value='dataServico';
+  document.getElementById('nfts_fDataDe').value='';
+  document.getElementById('nfts_fDataAte').value='';
+  render();
+});
+document.getElementById('fBusca').addEventListener('input', render);
+document.getElementById('fEmpreendimento').addEventListener('change', render);
+document.getElementById('fStatus').addEventListener('change', render);
+document.getElementById('fRetencao').addEventListener('change', render);
+document.getElementById('fDataCampo').addEventListener('change', render);
+document.getElementById('nfts_fDataDe').addEventListener('change', render);
+document.getElementById('nfts_fDataAte').addEventListener('change', render);
+
+document.getElementById('empreendimento').addEventListener('change', (ev)=>{
+  document.getElementById('outroWrap').style.display = ev.target.value === 'Outro' ? 'block' : 'none';
+});
+document.querySelectorAll('input[name="status"]').forEach(r=>{
+  r.addEventListener('change', (ev)=>{
+    const isEmitida = ev.target.value === 'emitida';
+    document.getElementById('dataEmissaoWrap').style.display = isEmitida ? 'block' : 'none';
+    if(isEmitida){
+      const campoData = document.getElementById('nfts_dataEmissao');
+      if(!campoData.value) campoData.value = new Date().toISOString().slice(0,10);
+    }
+  });
+});
+
+document.getElementById('nfts_dataEmissao').addEventListener('change', (ev)=>{
+  if(ev.target.value){
+    const radioEmitida = document.querySelector('input[name="status"][value="emitida"]');
+    radioEmitida.checked = true;
+    document.getElementById('dataEmissaoWrap').style.display = 'block';
+  }
+});
+
+document.getElementById('nfts_anexoPdf').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  if(!file) return;
+  if(file.type !== 'application/pdf'){
+    alert('Selecione um arquivo PDF.');
+    ev.target.value = '';
+    return;
+  }
+  if(file.size > 4 * 1024 * 1024){
+    alert('O arquivo precisa ter até 4 MB.');
+    ev.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    pendingAnexoBase64 = e.target.result;
+    pendingAnexoNome = file.name;
+    removerAnexoFlag = false;
+    document.getElementById('nfts_anexoStatus').textContent = `Pronto para salvar: ${file.name}`;
+    document.getElementById('nfts_btnRemoverAnexo').style.display = 'inline-block';
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('nfts_btnRemoverAnexo').addEventListener('click', ()=>{
+  pendingAnexoBase64 = undefined;
+  pendingAnexoNome = undefined;
+  removerAnexoFlag = true;
+  document.getElementById('nfts_anexoPdf').value = '';
+  document.getElementById('nfts_anexoStatus').textContent = 'Anexo será removido ao salvar.';
+  document.getElementById('nfts_btnRemoverAnexo').style.display = 'none';
+});
+
+document.getElementById('nfts_entryForm').addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  let valid = true;
+  const prestador = document.getElementById('prestador').value.trim();
+  const dataServico = document.getElementById('dataServico').value;
+
+  if(!prestador){
+    document.getElementById('err-prestador').textContent = 'Informe o nome do prestador.';
+    valid = false;
+  } else {
+    document.getElementById('err-prestador').textContent = '';
+  }
+  if(!dataServico){
+    document.getElementById('err-dataServico').textContent = 'Informe a data da prestação.';
+    valid = false;
+  } else {
+    document.getElementById('err-dataServico').textContent = '';
+  }
+  if(!valid) return;
+
+  const id = document.getElementById('nfts_entryId').value || uid();
+  const empreendimento = document.getElementById('empreendimento').value;
+  const existing = entries.find(e=>e.id === id);
+
+  let temAnexo = existing ? !!existing.temAnexo : false;
+  let anexoNome = existing ? existing.anexoNome : '';
+  if(pendingAnexoBase64){ temAnexo = true; anexoNome = pendingAnexoNome; }
+  if(removerAnexoFlag){ temAnexo = false; anexoNome = ''; }
+
+  const entry = {
+    id,
+    prestador,
+    empreendimento,
+    empreendimentoOutro: document.getElementById('empreendimentoOutro').value.trim(),
+    motivo: document.getElementById('motivo').value,
+    dataServico,
+    valor: document.getElementById('nfts_valor').value || 0,
+    retencao: document.querySelector('input[name="retencao"]:checked').value,
+    status: document.querySelector('input[name="status"]:checked').value,
+    dataEmissao: document.getElementById('nfts_dataEmissao').value || '',
+    observacoes: document.getElementById('nfts_observacoes').value.trim(),
+    temAnexo,
+    anexoNome
+  };
+
+  const idx = entries.findIndex(e=>e.id === id);
+  if(idx >= 0) entries[idx] = entry;
+  else entries.push(entry);
+
+  saveEntries();
+
+  if(pendingAnexoBase64){
+    try{ await salvarAnexoFirestoreNfts(id, pendingAnexoBase64, pendingAnexoNome); }catch(e){}
+  }
+  if(removerAnexoFlag){
+    try{ await excluirAnexoFirestoreNfts(id); }catch(e){}
+  }
+
+  closeModal();
+  render();
+});
+
+let importRows = [];
+let importHeaders = [];
+let previewRows = [];
+let importedKeys = new Set();
+
+async function loadImportedKeys(){
+  await firebaseProntoPromise;
+  try{
+    const docSnap = await db.collection('meta').doc('importedKeysNfts').get();
+    importedKeys = new Set(docSnap.exists ? (docSnap.data().keys || []) : []);
+  }catch(e){ importedKeys = new Set(); }
+}
+async function saveImportedKeys(){
+  await firebaseProntoPromise;
+  try{ await db.collection('meta').doc('importedKeysNfts').set({ keys: [...importedKeys] }); }catch(e){}
+}
+
+function normalizeStr(s){
+  return (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+}
+
+function guessColumn(headers, keywordGroups){
+  for(const group of keywordGroups){
+    const idx = headers.findIndex(h => group.every(k => normalizeStr(h).includes(normalizeStr(k))));
+    if(idx >= 0) return idx;
+  }
+  return -1;
+}
+
+function parseCsv(text){
+  const delim = text.split('\n')[0].includes(';') ? ';' : ',';
+  const lines = text.split(/\r?\n/).filter(l => l.trim().length);
+  const parseLine = (line) => {
+    const out = [];
+    let cur = '', inQuotes = false;
+    for(let i=0;i<line.length;i++){
+      const c = line[i];
+      if(c === '"'){ inQuotes = !inQuotes; continue; }
+      if(c === delim && !inQuotes){ out.push(cur); cur=''; continue; }
+      cur += c;
+    }
+    out.push(cur);
+    return out.map(s=>s.trim());
+  };
+  return lines.map(parseLine);
+}
+
+function openImportModal(){
+  resetImportModal();
+  document.getElementById('nfts_importOverlay').classList.add('open');
+}
+function closeImportModal(){
+  document.getElementById('nfts_importOverlay').classList.remove('open');
+}
+function resetImportModal(){
+  importRows = []; importHeaders = []; previewRows = [];
+  document.getElementById('nfts_fileInput').value = '';
+  document.getElementById('nfts_err-file').textContent = '';
+  document.getElementById('nfts_importStep1').style.display = 'block';
+  document.getElementById('nfts_importStep2').style.display = 'none';
+  document.getElementById('nfts_importStep3').style.display = 'none';
+  document.getElementById('nfts_stepDot1').classList.add('active');
+  document.getElementById('nfts_stepDot2').classList.remove('active');
+  document.getElementById('nfts_stepDot3').classList.remove('active');
+  document.getElementById('nfts_btnImportConfirmar').style.display = 'none';
+}
+
+function goToStep2(){
+  document.getElementById('nfts_importStep1').style.display = 'none';
+  document.getElementById('nfts_importStep2').style.display = 'block';
+  document.getElementById('nfts_importStep3').style.display = 'none';
+  document.getElementById('nfts_stepDot2').classList.add('active');
+  document.getElementById('nfts_btnImportConfirmar').style.display = 'none';
+
+  const fill = (selectId, extra) => {
+    const sel = document.getElementById(selectId);
+    sel.innerHTML = '<option value="-1">— não informado —</option>' +
+      importHeaders.map((h,i)=>`<option value="${i}">${escapeHtml(h)}</option>`).join('');
+    return sel;
+  };
+  fill('mapPrestador').value = guessColumn(importHeaders, [['prestador','nome'],['prestador','razao'],['fornecedor'],['prestador']]);
+  fill('mapPrestadorCnpj').value = guessColumn(importHeaders, [['cpf','cnpj','prestador'],['cnpj','prestador']]);
+  fill('mapMunicipio').value = guessColumn(importHeaders, [['municipio','prestador'],['municipio']]);
+  fill('mapData').value = guessColumn(importHeaders, [['data','emissao'],['competencia'],['data']]);
+  fill('mapValor').value = guessColumn(importHeaders, [['valor','servico'],['valor']]);
+  fill('mapChave').value = guessColumn(importHeaders, [['codigo','verificacao'],['chave'],['numero']]);
+  fill('mapNumero').value = guessColumn(importHeaders, [['numero']]);
+  fill('mapTomadorCnpj').value = guessColumn(importHeaders, [['cnpj','tomador'],['cpf','tomador']]);
+  fill('mapRetencao').value = guessColumn(importHeaders, [['iss','retido'],['retencao','iss']]);
+  fill('mapCancelada').value = guessColumn(importHeaders, [['cancelada']]);
+
+  const empSel = document.getElementById('mapEmpreendimentoFixo');
+  empSel.innerHTML = EMPREENDIMENTOS.filter(n=>n!=='Outro').map(n=>`<option value="${n}">${n}</option>`).join('');
+  empSel.value = 'Viva Gestão — Matriz (SP)';
+}
+
+function parseValorBR(valorRaw){
+  if(typeof valorRaw === 'number') return valorRaw;
+  let s = (valorRaw || '0').toString().trim().replace(/R\$\s?/gi, '').trim();
+  if(!s) return 0;
+  if(s.includes(',') && s.includes('.')){
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if(s.includes(',')){
+    s = s.replace(',', '.');
+  }
+  return parseFloat(s) || 0;
+}
+
+function excelDateToISO(v){
+  if(typeof v === 'number'){
+    const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+    return d.toISOString().slice(0,10);
+  }
+  const s = (v||'').toString().trim();
+  let m = s.match(/^(\d{2})\/(\d{4})$/);
+  if(m) return `${m[2]}-${m[1]}-01`;
+  m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m) return `${m[3]}-${m[2]}-${m[1]}`;
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return s.slice(0,10);
+  return '';
+}
+
+function buildPreview(){
+  const iPrestador = parseInt(document.getElementById('mapPrestador').value);
+  const iMunicipio = parseInt(document.getElementById('mapMunicipio').value);
+  const iData = parseInt(document.getElementById('nfts_mapData').value);
+  const iValor = parseInt(document.getElementById('nfts_mapValor').value);
+  const iChave = parseInt(document.getElementById('nfts_mapChave').value);
+  const iNumero = parseInt(document.getElementById('nfts_mapNumero').value);
+  const iPrestadorCnpj = parseInt(document.getElementById('mapPrestadorCnpj').value);
+  const iTomadorCnpj = parseInt(document.getElementById('mapTomadorCnpj').value);
+  const iRetencao = parseInt(document.getElementById('mapRetencao').value);
+  const iCancelada = parseInt(document.getElementById('mapCancelada').value);
+  const empreendimentoFixo = document.getElementById('mapEmpreendimentoFixo').value;
+
+  const detectEntidade = (cnpjStr) => {
+    const m = (cnpjStr || '').toString().match(/\/(\d{4})-\d{2}/);
+    if(!m) return empreendimentoFixo;
+    if(m[1] === '0001') return 'Viva Gestão — Matriz (SP)';
+    return 'Viva Gestão — Filial (SC)';
+  };
+
+  if(iMunicipio < 0){
+    document.getElementById('nfts_err-file').textContent = '';
+    alert('Selecione a coluna de município — é ela que identifica prestadores fora de São Paulo.');
+    return;
+  }
+
+  previewRows = [];
+  let skippedSp = 0, skippedDup = 0, skippedFilial = 0, skippedCancelada = 0;
+
+  importRows.forEach(row=>{
+    const municipio = row[iMunicipio] || '';
+    if(normalizeStr(municipio) === 'SAO PAULO'){ skippedSp++; return; }
+    if(!municipio){ return; }
+
+    if(iCancelada >= 0 && normalizeStr(row[iCancelada]) === 'SIM'){ skippedCancelada++; return; }
+
+    const empreendimento = iTomadorCnpj >= 0 ? detectEntidade(row[iTomadorCnpj]) : empreendimentoFixo;
+    if(empreendimento === 'Viva Gestão — Filial (SC)'){ skippedFilial++; return; }
+
+    const chave = iChave >= 0 ? row[iChave] : `${row[iPrestador]}|${row[iData]}`;
+    if(importedKeys.has(chave)){ skippedDup++; return; }
+
+    const valorRaw = iValor >= 0 ? row[iValor] : '';
+    const valorNum = parseValorBR(valorRaw);
+    const retencao = iRetencao >= 0 && normalizeStr(row[iRetencao]) === 'SIM' ? 'sim' : 'nao';
+
+    previewRows.push({
+      chave,
+      numero: iNumero >= 0 ? (row[iNumero] || '').toString().trim() : '',
+      prestadorCnpj: iPrestadorCnpj >= 0 ? (row[iPrestadorCnpj] || '').toString().replace(/\D/g, '') : '',
+      prestador: iPrestador >= 0 ? row[iPrestador] : '(prestador não identificado)',
+      municipio,
+      dataServico: iData >= 0 ? excelDateToISO(row[iData]) : '',
+      valor: valorNum,
+      empreendimento,
+      retencao
+    });
+  });
+
+  document.getElementById('nfts_importStep2').style.display = 'none';
+  document.getElementById('nfts_importStep3').style.display = 'block';
+  document.getElementById('nfts_stepDot3').classList.add('active');
+
+  const summaryEl = document.getElementById('nfts_importSummary');
+  if(previewRows.length === 0){
+    summaryEl.className = 'import-summary empty';
+    summaryEl.textContent = `Nenhum lançamento novo para importar. (${skippedSp} de São Paulo ignorados, ${skippedCancelada} canceladas ignoradas, ${skippedFilial} da filial em SC ignorados, ${skippedDup} já importados anteriormente.)`;
+    document.getElementById('nfts_previewTable').innerHTML = '';
+    document.getElementById('nfts_btnImportConfirmar').style.display = 'none';
+    return;
+  }
+
+  const retidas = previewRows.filter(r=>r.retencao==='sim').length;
+  summaryEl.className = 'import-summary';
+  summaryEl.innerHTML = `<strong style="font-weight:500;color:var(--ink);">${previewRows.length} NFTS a gerar</strong> — prestadores fora de São Paulo, obrigatoriedade pela hipótese I.
+    ${skippedSp} notas de São Paulo ignoradas, ${skippedCancelada} canceladas ignoradas, ${skippedFilial} da filial em SC ignoradas (NFTS não se aplica fora de SP), ${skippedDup} já importadas antes.
+    ${retidas} com retenção de ISS detectada (prazo interno dia 7), ${previewRows.length - retidas} sem retenção (prazo dia 30) — confira e ajuste depois se necessário.`;
+
+  document.getElementById('nfts_previewTable').innerHTML = `
+    <thead><tr><th>Prestador</th><th>Município</th><th>Data</th><th>Valor</th><th>Retenção ISS</th><th>Empreendimento</th></tr></thead>
+    <tbody>${previewRows.map(r=>`<tr>
+      <td>${escapeHtml(r.prestador)}</td>
+      <td>${escapeHtml(r.municipio)}</td>
+      <td>${r.dataServico ? fmtDate(r.dataServico) : '—'}</td>
+      <td class="num-col">${fmtMoney(r.valor)}</td>
+      <td>${r.retencao === 'sim' ? 'Sim' : 'Não'}</td>
+      <td>${escapeHtml(r.empreendimento)}</td>
+    </tr>`).join('')}</tbody>`;
+
+  document.getElementById('nfts_btnImportConfirmar').style.display = 'inline-block';
+}
+
+function confirmImport(){
+  const validRows = previewRows.filter(r => r.dataServico);
+  const skippedNoDate = previewRows.length - validRows.length;
+
+  validRows.forEach(r=>{
+    entries.push({
+      id: uid(),
+      prestador: r.prestador,
+      empreendimento: r.empreendimento,
+      empreendimentoOutro: '',
+      motivo: 'fora_sp',
+      dataServico: r.dataServico,
+      valor: r.valor,
+      retencao: r.retencao,
+      status: 'pendente',
+      dataEmissao: '',
+      observacoes: `Importado da Qive — município do prestador: ${r.municipio}`,
+      qiveChave: r.chave,
+      qivePrestadorCnpj: r.prestadorCnpj,
+      qiveNumero: r.numero,
+      temAnexo: false,
+      anexoNome: ''
+    });
+    importedKeys.add(r.chave);
+  });
+
+  saveEntries();
+  saveImportedKeys();
+  closeImportModal();
+  render();
+  if(skippedNoDate > 0){
+    alert(`${validRows.length} lançamentos importados. ${skippedNoDate} ficaram de fora por falta de data reconhecível — importe-os manualmente.`);
+  }
+}
+
+function handleFile(file){
+  document.getElementById('nfts_err-file').textContent = '';
+  const name = file.name.toLowerCase();
+  if(name.endsWith('.csv')){
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const rows = parseCsv(e.target.result);
+      if(rows.length < 2){
+        document.getElementById('nfts_err-file').textContent = 'Arquivo vazio ou sem dados reconhecíveis.';
+        return;
+      }
+      importHeaders = rows[0];
+      importRows = rows.slice(1);
+      goToStep2();
+    };
+    reader.readAsText(file, 'utf-8');
+  } else if(name.endsWith('.xlsx') || name.endsWith('.xls')){
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      try{
+        const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array', cellDates:false});
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true});
+        const cleanRows = rows.filter(r => r.some(c => c !== undefined && c !== ''));
+        if(cleanRows.length < 2){
+          document.getElementById('nfts_err-file').textContent = 'Planilha vazia ou sem dados reconhecíveis.';
+          return;
+        }
+        importHeaders = cleanRows[0].map(h => (h||'').toString());
+        importRows = cleanRows.slice(1);
+        goToStep2();
+      }catch(err){
+        document.getElementById('nfts_err-file').textContent = 'Não consegui ler esse arquivo. Tente exportar novamente em CSV.';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    document.getElementById('nfts_err-file').textContent = 'Formato não reconhecido. Envie .csv, .xlsx ou .xls.';
+  }
+}
+
+document.getElementById('nfts_btnImportar').addEventListener('click', openImportModal);
+document.getElementById('nfts_btnImportCancelar').addEventListener('click', closeImportModal);
+document.getElementById('nfts_importOverlay').addEventListener('click', (ev)=>{
+  if(ev.target.id === 'importOverlay') closeImportModal();
+});
+document.getElementById('nfts_dropzone').addEventListener('click', ()=>document.getElementById('nfts_fileInput').click());
+document.getElementById('nfts_dropzone').addEventListener('dragover', (ev)=>{ ev.preventDefault(); ev.currentTarget.classList.add('drag'); });
+document.getElementById('nfts_dropzone').addEventListener('dragleave', (ev)=>{ ev.currentTarget.classList.remove('drag'); });
+document.getElementById('nfts_dropzone').addEventListener('drop', (ev)=>{
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('drag');
+  if(ev.dataTransfer.files[0]) handleFile(ev.dataTransfer.files[0]);
+});
+document.getElementById('nfts_fileInput').addEventListener('change', (ev)=>{
+  if(ev.target.files[0]) handleFile(ev.target.files[0]);
+});
+document.getElementById('nfts_btnGerarPreview').addEventListener('click', buildPreview);
+document.getElementById('nfts_btnImportConfirmar').addEventListener('click', confirmImport);
+
+async function loadResponsavelEmail(){
+  await firebaseProntoPromise;
+  try{
+    const docSnap = await db.collection('meta').doc('configNfts').get();
+    if(docSnap.exists && docSnap.data().responsavelEmail) document.getElementById('responsavelEmail').value = docSnap.data().responsavelEmail;
+  }catch(e){}
+}
+document.getElementById('responsavelEmail').addEventListener('change', async (ev)=>{
+  await firebaseProntoPromise;
+  try{ await db.collection('meta').doc('configNfts').set({ responsavelEmail: ev.target.value.trim() }); }catch(e){}
+});
+
+function getPendentes(){
+  return sortEntries(entries.filter(e => e.status === 'pendente'));
+}
+
+function getListaPorEscopo(escopo){
+  if(escopo === 'com_retencao') return getPendentes().filter(e => e.retencao === 'sim');
+  if(escopo === 'sem_retencao') return getPendentes().filter(e => e.retencao === 'nao');
+  if(escopo === 'filtrado') return sortEntries(getFiltered());
+  return getPendentes();
+}
+
+function tituloPorEscopo(escopo){
+  if(escopo === 'com_retencao') return 'Relatório de NFTS pendentes — com retenção de ISS';
+  if(escopo === 'sem_retencao') return 'Relatório de NFTS pendentes — sem retenção de ISS';
+  if(escopo === 'filtrado') return 'Relatório de NFTS — conforme filtros aplicados na tela';
+  return 'Relatório de NFTS pendentes de emissão';
+}
+
+function gerarPdfPendentes(lista, titulo){
+  lista = lista || getPendentes();
+  titulo = titulo || 'Relatório de NFTS pendentes de emissão';
+  if(lista.length === 0){
+    alert('Não há lançamentos para esse critério.');
+    return null;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape' });
+  const hoje = new Date();
+
+  doc.setFontSize(14);
+  doc.text(titulo, 14, 16);
+  doc.setFontSize(9);
+  doc.setTextColor(100);
+  doc.text(`Gerado em ${fmtDate(hoje)} — ${lista.length} nota(s)`, 14, 22);
+
+  const rows = lista.map(e=>{
+    const s = getSituacao(e);
+    const empLabel = e.empreendimento === 'Outro' && e.empreendimentoOutro ? e.empreendimentoOutro : e.empreendimento;
+    return [
+      e.prestador,
+      empLabel,
+      MOTIVO_LABEL[e.motivo] || '',
+      fmtDate(e.dataServico),
+      e.retencao === 'sim' ? 'Sim' : 'Não',
+      fmtMoney(e.valor),
+      fmtDate(s.prazo),
+      s.label
+    ];
+  });
+
+  doc.autoTable({
+    startY: 28,
+    head: [['Prestador','Empreendimento','Motivo','Prestação','Retenção ISS','Valor','Prazo NFTS','Situação']],
+    body: rows,
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [27,42,56] },
+    didParseCell: (data)=>{
+      if(data.section === 'body' && data.column.index === 7){
+        const val = data.cell.raw;
+        if(val === 'Atrasada') data.cell.styles.textColor = [162,62,62];
+        else if(val === 'Crítico') data.cell.styles.textColor = [193,80,46];
+        else if(val === 'Vence em breve') data.cell.styles.textColor = [181,118,42];
+      }
+    }
+  });
+
+  return doc;
+}
+
+document.getElementById('btnGerarPdf').addEventListener('click', ()=>{
+  const escopo = document.getElementById('pdfEscopo').value;
+  const lista = getListaPorEscopo(escopo);
+  const doc = gerarPdfPendentes(lista, tituloPorEscopo(escopo));
+  if(!doc) return;
+  const dataStr = new Date().toISOString().slice(0,10);
+  doc.save(`nfts-${escopo}-${dataStr}.pdf`);
+});
+
+function nomeArquivoSeguro(texto, limite=80){
+  texto = (texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  texto = texto.replace(/[^\w\s.-]/g, '').trim().replace(/\s+/g, '_');
+  return (texto || 'sem_nome').slice(0, limite);
+}
+
+function baixarBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function gerarZipAnexos(lista){
+  const zip = new JSZip();
+  let incluidos = 0;
+  for(const e of lista){
+    try{
+      const dataUrl = await buscarAnexoFirestoreNfts(e.id);
+      if(dataUrl){
+        const base64 = dataUrl.split(',')[1] || dataUrl;
+        const nome = `${nomeArquivoSeguro(e.qiveNumero || '')}_${nomeArquivoSeguro(e.prestador)}.pdf`;
+        zip.file(nome, base64, { base64: true });
+        incluidos++;
+      }
+    }catch(err){}
+  }
+  if(incluidos === 0) return null;
+  const blob = await zip.generateAsync({ type: 'blob' });
+  return blob;
+}
+
+document.getElementById('btnPrepararEmail').addEventListener('click', async ()=>{
+  const pendentes = getPendentes();
+  if(pendentes.length === 0){
+    alert('Não há NFTS pendentes no momento.');
+    return;
+  }
+  const email = document.getElementById('responsavelEmail').value.trim();
+  if(!email){
+    alert('Informe o e-mail do responsável antes de preparar o envio.');
+    document.getElementById('responsavelEmail').focus();
+    return;
+  }
+
+  const comAnexo = pendentes.filter(e => e.temAnexo);
+  const semAnexo = pendentes.filter(e => !e.temAnexo);
+
+  if(comAnexo.length === 0){
+    alert('Nenhum lançamento pendente tem anexo ainda — anexe os PDFs (individualmente ou em lote) antes de preparar o e-mail.');
+    return;
+  }
+
+  const btn = document.getElementById('btnPrepararEmail');
+  btn.disabled = true;
+  btn.textContent = 'Gerando ZIP...';
+  const blob = await gerarZipAnexos(comAnexo);
+  btn.disabled = false;
+  btn.textContent = 'Preparar e-mail';
+
+  if(!blob){
+    alert('Não consegui montar o ZIP dos anexos. Tente novamente.');
+    return;
+  }
+
+  const dataStr = new Date().toISOString().slice(0,10);
+  const fileName = `nfts-anexos-${dataStr}.zip`;
+  baixarBlob(blob, fileName);
+
+  const subject = `NFTS pendentes de emissão — ${comAnexo.length} nota(s) em anexo`;
+  const linhas = comAnexo.slice(0, 25).map(e=>{
+    const s = getSituacao(e);
+    const empLabel = e.empreendimento === 'Outro' && e.empreendimentoOutro ? e.empreendimentoOutro : e.empreendimento;
+    return `- ${e.prestador} (${empLabel}) — prazo ${fmtDate(s.prazo)} [${s.label}]`;
+  }).join('\n');
+  const extraComAnexo = comAnexo.length > 25 ? `\n... e mais ${comAnexo.length - 25} nota(s) no ZIP.` : '';
+  const avisoSemAnexo = semAnexo.length > 0
+    ? `\n\nObs.: ${semAnexo.length} nota(s) pendente(s) ainda não têm PDF anexado no app e não entraram neste envio.`
+    : '';
+  const body = `Olá,\n\nSegue em anexo o ZIP (${fileName}) com os PDFs das ${comAnexo.length} NFTS pendentes de emissão:\n\n${linhas}${extraComAnexo}\n\nO arquivo foi baixado agora — por favor, anexe-o a este e-mail antes de enviar.${avisoSemAnexo}\n\nObrigado.`;
+
+  const mailto = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
+});
+
+let pdfZipMatches = [];
+
+function openPdfZipModal(){
+  document.getElementById('nfts_pdfZipInput').value = '';
+  document.getElementById('nfts_err-pdfzip').textContent = '';
+  document.getElementById('nfts_pdfZipStep1').style.display = 'block';
+  document.getElementById('nfts_pdfZipStep2').style.display = 'none';
+  document.getElementById('nfts_btnPdfZipConfirmar').style.display = 'none';
+  document.getElementById('nfts_pdfZipOverlay').classList.add('open');
+}
+function closePdfZipModal(){
+  document.getElementById('nfts_pdfZipOverlay').classList.remove('open');
+}
+
+function normalizeFilename(s){
+  return normalizeStr(s).replace(/[^A-Z0-9]/g, '');
+}
+
+function parseNomeQive(nomeSemExt){
+  // Formato observado da Qive: DD-MM-AAAA_NUMERO_CNPJPRESTADOR.pdf
+  const partes = nomeSemExt.split('_');
+  if(partes.length !== 3) return null;
+  return { data: partes[0], numero: partes[1].replace(/^0+(?=\d)/, ''), cnpj: partes[2] };
+}
+
+function encontrarArquivoParaEntry(entry, arquivos){
+  const parseados = arquivos.map(a => ({ a, p: parseNomeQive(a.nomeOriginal.replace(/[.]pdf$/i, '')) }));
+  const numeroEntry = (entry.qiveNumero || '').replace(/^0+(?=\d)/, '');
+
+  // 1) leitura estrutural do nome: número exato + CNPJ do prestador exato — critério
+  //    forte e específico ao padrão de nome de arquivo da Qive, sem risco de casar
+  //    dígitos que apareçam por coincidência na data ou em outro trecho do nome.
+  if(numeroEntry && entry.qivePrestadorCnpj){
+    const achou = parseados.find(x => x.p && x.p.numero === numeroEntry && x.p.cnpj === entry.qivePrestadorCnpj);
+    if(achou) return achou.a;
+  }
+
+  // 2) chave/código de verificação, como substring longa (já é única por si só)
+  if(entry.qiveChave && entry.qiveChave.length >= 10){
+    const chaveNorm = normalizeFilename(entry.qiveChave);
+    const achou = arquivos.find(a => normalizeFilename(a.nomeOriginal).includes(chaveNorm));
+    if(achou) return achou;
+  }
+
+  // 3) número exato pela leitura estrutural, sem o CNPJ (lançamentos antigos sem esse campo)
+  if(numeroEntry){
+    const achou = parseados.find(x => x.p && x.p.numero === numeroEntry);
+    if(achou) return achou.a;
+  }
+
+  // 4) trecho do nome do prestador (último recurso, mais impreciso)
+  const prestadorNorm = normalizeFilename(entry.prestador).slice(0, 12);
+  if(prestadorNorm.length >= 6){
+    const achou = arquivos.find(a => normalizeFilename(a.nomeOriginal).includes(prestadorNorm));
+    if(achou) return achou;
+  }
+  return null;
+}
+
+async function coletarPdfsDoZip(zip, arquivos, profundidade){
+  if(profundidade > 4) return;
+  const listaEntradas = [];
+  zip.forEach((path, zipEntry)=>{ listaEntradas.push(zipEntry); });
+
+  for(const zipEntry of listaEntradas){
+    if(zipEntry.dir) continue;
+    if(/\.pdf$/i.test(zipEntry.name)){
+      arquivos.push({ nomeOriginal: zipEntry.name.split('/').pop(), zipEntry, usado: false });
+    } else if(/\.zip$/i.test(zipEntry.name)){
+      try{
+        const nestedData = await zipEntry.async('arraybuffer');
+        const nestedZip = await JSZip.loadAsync(nestedData);
+        await coletarPdfsDoZip(nestedZip, arquivos, profundidade + 1);
+      }catch(e){}
+    }
+  }
+}
+
+async function processarPdfZip(file){
+  document.getElementById('nfts_err-pdfzip').textContent = 'Lendo o ZIP (pode levar alguns segundos se houver ZIPs aninhados)...';
+  let zip;
+  try{
+    zip = await JSZip.loadAsync(file);
+  }catch(e){
+    document.getElementById('nfts_err-pdfzip').textContent = 'Não consegui ler esse arquivo ZIP.';
+    return;
+  }
+
+  const arquivos = [];
+  await coletarPdfsDoZip(zip, arquivos, 0);
+
+  if(arquivos.length === 0){
+    document.getElementById('nfts_err-pdfzip').textContent = 'Nenhum PDF encontrado dentro do ZIP (nem em ZIPs aninhados).';
+    return;
+  }
+
+  const candidatos = entries.filter(e => !e.temAnexo);
+  pdfZipMatches = [];
+  candidatos.forEach(entry=>{
+    const disponiveis = arquivos.filter(a => !a.usado);
+    const achou = encontrarArquivoParaEntry(entry, disponiveis);
+    if(achou){
+      achou.usado = true;
+      pdfZipMatches.push({ entry, arquivo: achou });
+    }
+  });
+
+  const naoCasados = arquivos.filter(a => !a.usado).length;
+
+  document.getElementById('nfts_pdfZipStep1').style.display = 'none';
+  document.getElementById('nfts_pdfZipStep2').style.display = 'block';
+
+  const summaryEl = document.getElementById('nfts_pdfZipSummary');
+  if(pdfZipMatches.length === 0){
+    summaryEl.className = 'import-summary empty';
+    summaryEl.textContent = `Nenhum PDF do ZIP foi casado com um lançamento sem anexo. (${arquivos.length} PDF(s) no ZIP.)`;
+  } else {
+    summaryEl.className = 'import-summary';
+    summaryEl.innerHTML = `<strong style="font-weight:500;color:var(--ink);">${pdfZipMatches.length} PDF(s) casados</strong> com lançamentos sem anexo.
+      ${naoCasados} PDF(s) do ZIP não encontraram lançamento correspondente e ficam de fora.`;
+  }
+
+  document.getElementById('nfts_pdfZipPreviewTable').innerHTML = `
+    <thead><tr><th>Lançamento</th><th>Empreendimento</th><th>Arquivo casado</th></tr></thead>
+    <tbody>${pdfZipMatches.map(m=>{
+      const empLabel = m.entry.empreendimento === 'Outro' && m.entry.empreendimentoOutro ? m.entry.empreendimentoOutro : m.entry.empreendimento;
+      return `<tr>
+        <td>${escapeHtml(m.entry.prestador)}</td>
+        <td>${escapeHtml(empLabel)}</td>
+        <td>${escapeHtml(m.arquivo.nomeOriginal)}</td>
+      </tr>`;
+    }).join('')}</tbody>`;
+
+  const idsComMatch = new Set(pdfZipMatches.map(m => m.entry.id));
+  const semAnexoRestantes = sortEntries(candidatos.filter(e => !idsComMatch.has(e.id)));
+
+  document.getElementById('nfts_pdfZipSemAnexoTitulo').textContent =
+    semAnexoRestantes.length > 0
+      ? `${semAnexoRestantes.length} lançamento(s) continuam sem anexo (não casaram com nenhum PDF deste ZIP):`
+      : 'Todos os lançamentos pendentes ficam com anexo após esta importação.';
+
+  document.getElementById('nfts_pdfZipSemAnexoTable').innerHTML = semAnexoRestantes.length === 0 ? '' : `
+    <thead><tr><th>Lançamento</th><th>Empreendimento</th><th>Prazo NFTS</th><th>Situação</th></tr></thead>
+    <tbody>${semAnexoRestantes.map(e=>{
+      const s = getSituacao(e);
+      const empLabel = e.empreendimento === 'Outro' && e.empreendimentoOutro ? e.empreendimentoOutro : e.empreendimento;
+      return `<tr>
+        <td>${escapeHtml(e.prestador)}</td>
+        <td>${escapeHtml(empLabel)}</td>
+        <td class="num-col">${fmtDate(s.prazo)}</td>
+        <td>${escapeHtml(s.label)}</td>
+      </tr>`;
+    }).join('')}</tbody>`;
+
+  document.getElementById('nfts_btnPdfZipConfirmar').style.display = pdfZipMatches.length ? 'inline-block' : 'none';
+}
+
+function sleep(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+
+async function salvarAnexoComRetry(id, dataUrl, nome, tentativas){
+  for(let i = 0; i < tentativas; i++){
+    try{
+      await salvarAnexoFirestoreNfts(id, dataUrl, nome);
+      return true;
+    }catch(e){
+      if(i === tentativas - 1){
+        console.error('Falha ao salvar anexo', id, e);
+        return false;
+      }
+      await sleep(500 * (i + 1)); // espera crescente antes de tentar de novo
+    }
+  }
+  return false;
+}
+
+async function confirmarPdfZip(){
+  const btn = document.getElementById('nfts_btnPdfZipConfirmar');
+  btn.disabled = true;
+  let ok = 0, falhas = 0;
+
+  for(let i = 0; i < pdfZipMatches.length; i++){
+    const m = pdfZipMatches[i];
+    btn.textContent = `Anexando ${i + 1}/${pdfZipMatches.length}...`;
+    try{
+      const blob = await m.arquivo.zipEntry.async('base64');
+      const dataUrl = `data:application/pdf;base64,${blob}`;
+      const salvou = await salvarAnexoComRetry(m.entry.id, dataUrl, m.arquivo.nomeOriginal, 3);
+      if(salvou){
+        const idx = entries.findIndex(e => e.id === m.entry.id);
+        if(idx >= 0){
+          entries[idx].temAnexo = true;
+          entries[idx].anexoNome = m.arquivo.nomeOriginal;
+        }
+        ok++;
+      } else {
+        falhas++;
+      }
+    }catch(e){
+      console.error('Erro processando PDF', m.arquivo.nomeOriginal, e);
+      falhas++;
+    }
+    await sleep(200); // evita disparar muitas gravações seguidas rápido demais
+  }
+
+  btn.textContent = 'Anexar PDFs casados';
+  btn.disabled = false;
+  saveEntries();
+  closePdfZipModal();
+  render();
+  if(falhas > 0){
+    alert(`${ok} PDF(s) anexados. ${falhas} falharam — tente anexá-los de novo (ex: rodando o ZIP em lotes menores).`);
+  } else {
+    alert(`${ok} PDF(s) anexados aos lançamentos correspondentes.`);
+  }
+}
+
+document.getElementById('nfts_btnImportarPdfs').addEventListener('click', openPdfZipModal);
+
+document.getElementById('nfts_btnLimparAnexos').addEventListener('click', async ()=>{
+  const comAnexo = entries.filter(e => e.temAnexo);
+  if(comAnexo.length === 0){
+    alert('Nenhum lançamento tem anexo no momento.');
+    return;
+  }
+  const confirmou = confirm(`Remover o anexo de ${comAnexo.length} lançamento(s)? Isso não apaga os lançamentos, só os PDFs anexados. Depois é só reimportar o ZIP.`);
+  if(!confirmou) return;
+
+  const btn = document.getElementById('nfts_btnLimparAnexos');
+  btn.disabled = true;
+  let removidos = 0;
+  for(let i = 0; i < comAnexo.length; i++){
+    btn.textContent = `Removendo ${i + 1}/${comAnexo.length}...`;
+    try{
+      await excluirAnexoFirestoreNfts(comAnexo[i].id);
+    }catch(e){}
+    const idx = entries.findIndex(e => e.id === comAnexo[i].id);
+    if(idx >= 0){
+      entries[idx].temAnexo = false;
+      entries[idx].anexoNome = '';
+    }
+    removidos++;
+    await sleep(150);
+  }
+  btn.textContent = 'Remover todos os anexos';
+  btn.disabled = false;
+  saveEntries();
+  render();
+  alert(`${removidos} anexo(s) removido(s). Agora é só clicar em "Importar PDFs (ZIP)" e reenviar o mesmo arquivo.`);
+});
+
+function chaveDuplicidade(e){
+  // Notas importadas da Qive têm chave própria (única de verdade). Lançamentos
+  // manuais ou antigos sem esse campo caem no critério de reserva abaixo.
+  if(e.qiveChave) return `qc:${e.qiveChave}`;
+  return `fb:${normalizeStr(e.prestador)}|${e.dataServico}|${e.valor}|${e.empreendimento}`;
+}
+
+document.getElementById('nfts_btnRemoverDuplicados').addEventListener('click', async ()=>{
+  const grupos = new Map();
+  entries.forEach(e=>{
+    const k = chaveDuplicidade(e);
+    if(!grupos.has(k)) grupos.set(k, []);
+    grupos.get(k).push(e);
+  });
+
+  const paraRemover = [];
+  grupos.forEach(grupo=>{
+    if(grupo.length <= 1) return;
+    // mantém o que tem anexo (se algum tiver); entre iguais, mantém o primeiro
+    const manter = grupo.find(e => e.temAnexo) || grupo[0];
+    grupo.forEach(e=>{ if(e.id !== manter.id) paraRemover.push(e); });
+  });
+
+  if(paraRemover.length === 0){
+    alert('Não encontrei lançamentos duplicados.');
+    return;
+  }
+
+  const confirmou = confirm(`Encontrei ${paraRemover.length} lançamento(s) duplicado(s) (mesma nota repetida). Remover as cópias e manter só uma de cada? Os anexos das cópias removidas (se houver) também são apagados.`);
+  if(!confirmou) return;
+
+  const btn = document.getElementById('nfts_btnRemoverDuplicados');
+  btn.disabled = true;
+  for(let i = 0; i < paraRemover.length; i++){
+    btn.textContent = `Removendo ${i + 1}/${paraRemover.length}...`;
+    const dup = paraRemover[i];
+    if(dup.temAnexo){
+      try{ await excluirAnexoFirestoreNfts(dup.id); }catch(e){}
+    }
+    await sleep(80);
+  }
+  btn.textContent = 'Remover duplicados';
+  btn.disabled = false;
+
+  const idsRemover = new Set(paraRemover.map(e => e.id));
+  entries = entries.filter(e => !idsRemover.has(e.id));
+  idsRemover.forEach(id => excluirNotaFirestoreNfts(id));
+  render();
+  alert(`${paraRemover.length} lançamento(s) duplicado(s) removido(s). Restaram ${entries.length} lançamento(s) no total.`);
+});
+document.getElementById('nfts_btnPdfZipCancelar').addEventListener('click', closePdfZipModal);
+document.getElementById('nfts_pdfZipOverlay').addEventListener('click', (ev)=>{
+  if(ev.target.id === 'pdfZipOverlay') closePdfZipModal();
+});
+document.getElementById('nfts_pdfZipDropzone').addEventListener('click', ()=>document.getElementById('nfts_pdfZipInput').click());
+document.getElementById('nfts_pdfZipDropzone').addEventListener('dragover', (ev)=>{ ev.preventDefault(); ev.currentTarget.classList.add('drag'); });
+document.getElementById('nfts_pdfZipDropzone').addEventListener('dragleave', (ev)=>{ ev.currentTarget.classList.remove('drag'); });
+document.getElementById('nfts_pdfZipDropzone').addEventListener('drop', (ev)=>{
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('drag');
+  if(ev.dataTransfer.files[0]) processarPdfZip(ev.dataTransfer.files[0]);
+});
+document.getElementById('nfts_pdfZipInput').addEventListener('change', (ev)=>{
+  if(ev.target.files[0]) processarPdfZip(ev.target.files[0]);
+});
+document.getElementById('nfts_btnPdfZipConfirmar').addEventListener('click', confirmarPdfZip);
+
+let reconcileHeaders = [];
+let reconcileRows = [];
+let reconcileMatches = [];
+
+function openReconcileModal(){
+  reconcileHeaders = []; reconcileRows = []; reconcileMatches = [];
+  document.getElementById('reconcileFileInput').value = '';
+  document.getElementById('err-reconcile').textContent = '';
+  document.getElementById('reconcileStep1').style.display = 'block';
+  document.getElementById('reconcileStep2').style.display = 'none';
+  document.getElementById('reconcileStep3').style.display = 'none';
+  document.getElementById('btnReconConfirmar').style.display = 'none';
+  document.getElementById('reconcileOverlay').classList.add('open');
+}
+function closeReconcileModal(){
+  document.getElementById('reconcileOverlay').classList.remove('open');
+}
+
+function handleReconcileFile(file){
+  document.getElementById('err-reconcile').textContent = '';
+  const name = file.name.toLowerCase();
+  if(name.endsWith('.csv')){
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const rows = parseCsv(e.target.result);
+      if(rows.length < 2){
+        document.getElementById('err-reconcile').textContent = 'Arquivo vazio ou sem dados reconhecíveis.';
+        return;
+      }
+      reconcileHeaders = rows[0];
+      reconcileRows = rows.slice(1);
+      goToReconcileStep2();
+    };
+    reader.readAsText(file, 'utf-8');
+  } else if(name.endsWith('.xlsx') || name.endsWith('.xls')){
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      try{
+        const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array', cellDates:false});
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true});
+        const cleanRows = rows.filter(r => r.some(c => c !== undefined && c !== ''));
+        if(cleanRows.length < 2){
+          document.getElementById('err-reconcile').textContent = 'Planilha vazia ou sem dados reconhecíveis.';
+          return;
+        }
+        reconcileHeaders = cleanRows[0].map(h => (h||'').toString());
+        reconcileRows = cleanRows.slice(1);
+        goToReconcileStep2();
+      }catch(err){
+        document.getElementById('err-reconcile').textContent = 'Não consegui ler esse arquivo.';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    document.getElementById('err-reconcile').textContent = 'Formato não reconhecido. Envie .csv, .xlsx ou .xls.';
+  }
+}
+
+function goToReconcileStep2(){
+  document.getElementById('reconcileStep1').style.display = 'none';
+  document.getElementById('reconcileStep2').style.display = 'block';
+  document.getElementById('reconcileStep3').style.display = 'none';
+  document.getElementById('btnReconConfirmar').style.display = 'none';
+
+  const fill = (selectId) => {
+    const sel = document.getElementById(selectId);
+    sel.innerHTML = '<option value="-1">— não informado —</option>' +
+      reconcileHeaders.map((h,i)=>`<option value="${i}">${escapeHtml(h)}</option>`).join('');
+    return sel;
+  };
+  fill('mapReconChave').value = guessColumn(reconcileHeaders, [['codigo','verificacao'],['chave']]);
+  fill('mapReconCancelada').value = guessColumn(reconcileHeaders, [['cancelada']]);
+  fill('mapReconDataCancel').value = guessColumn(reconcileHeaders, [['data','cancelamento']]);
+}
+
+function buildReconcilePreview(){
+  const iChave = parseInt(document.getElementById('mapReconChave').value);
+  const iCancelada = parseInt(document.getElementById('mapReconCancelada').value);
+  const iDataCancel = parseInt(document.getElementById('mapReconDataCancel').value);
+
+  if(iChave < 0 || iCancelada < 0){
+    alert('Selecione ao menos as colunas de chave e de cancelada.');
+    return;
+  }
+
+  const entriesPorChave = new Map();
+  entries.forEach(e=>{ if(e.qiveChave) entriesPorChave.set(e.qiveChave, e); });
+
+  reconcileMatches = [];
+  let jaMarcadas = 0, naoEncontradas = 0, naoCanceladas = 0;
+
+  reconcileRows.forEach(row=>{
+    if(normalizeStr(row[iCancelada]) !== 'SIM'){ naoCanceladas++; return; }
+    const chave = (row[iChave] || '').toString().trim();
+    const entry = entriesPorChave.get(chave);
+    if(!entry){ naoEncontradas++; return; }
+    if(entry.status === 'cancelada'){ jaMarcadas++; return; }
+    reconcileMatches.push({
+      entry,
+      dataCancelamento: iDataCancel >= 0 ? excelDateToISO(row[iDataCancel]) : ''
+    });
+  });
+
+  document.getElementById('reconcileStep2').style.display = 'none';
+  document.getElementById('reconcileStep3').style.display = 'block';
+
+  const summaryEl = document.getElementById('reconcileSummary');
+  if(reconcileMatches.length === 0){
+    summaryEl.className = 'import-summary empty';
+    summaryEl.textContent = `Nada para marcar. (${jaMarcadas} já estavam canceladas, ${naoEncontradas} canceladas na planilha mas sem lançamento correspondente no app.)`;
+  } else {
+    summaryEl.className = 'import-summary';
+    summaryEl.innerHTML = `<strong style="font-weight:500;color:var(--ink);">${reconcileMatches.length} lançamento(s)</strong> serão marcados como Cancelada.
+      ${jaMarcadas} já estavam marcadas, ${naoEncontradas} canceladas na planilha sem lançamento correspondente no app.`;
+  }
+
+  document.getElementById('reconcilePreviewTable').innerHTML = reconcileMatches.length === 0 ? '' : `
+    <thead><tr><th>Prestador</th><th>Empreendimento</th><th>Data de cancelamento</th></tr></thead>
+    <tbody>${reconcileMatches.map(m=>{
+      const empLabel = m.entry.empreendimento === 'Outro' && m.entry.empreendimentoOutro ? m.entry.empreendimentoOutro : m.entry.empreendimento;
+      return `<tr>
+        <td>${escapeHtml(m.entry.prestador)}</td>
+        <td>${escapeHtml(empLabel)}</td>
+        <td class="num-col">${m.dataCancelamento ? fmtDate(m.dataCancelamento) : '—'}</td>
+      </tr>`;
+    }).join('')}</tbody>`;
+
+  document.getElementById('btnReconConfirmar').style.display = reconcileMatches.length ? 'inline-block' : 'none';
+}
+
+function confirmReconcile(){
+  reconcileMatches.forEach(m=>{
+    const idx = entries.findIndex(e => e.id === m.entry.id);
+    if(idx >= 0){
+      entries[idx].status = 'cancelada';
+      entries[idx].dataCancelamento = m.dataCancelamento || '';
+    }
+  });
+  saveEntries();
+  closeReconcileModal();
+  render();
+  alert(`${reconcileMatches.length} lançamento(s) marcados como Cancelada.`);
+}
+
+document.getElementById('btnMarcarCanceladas').addEventListener('click', openReconcileModal);
+document.getElementById('btnReconCancelar').addEventListener('click', closeReconcileModal);
+document.getElementById('reconcileOverlay').addEventListener('click', (ev)=>{
+  if(ev.target.id === 'reconcileOverlay') closeReconcileModal();
+});
+document.getElementById('reconcileDropzone').addEventListener('click', ()=>document.getElementById('reconcileFileInput').click());
+document.getElementById('reconcileDropzone').addEventListener('dragover', (ev)=>{ ev.preventDefault(); ev.currentTarget.classList.add('drag'); });
+document.getElementById('reconcileDropzone').addEventListener('dragleave', (ev)=>{ ev.currentTarget.classList.remove('drag'); });
+document.getElementById('reconcileDropzone').addEventListener('drop', (ev)=>{
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('drag');
+  if(ev.dataTransfer.files[0]) handleReconcileFile(ev.dataTransfer.files[0]);
+});
+document.getElementById('reconcileFileInput').addEventListener('change', (ev)=>{
+  if(ev.target.files[0]) handleReconcileFile(ev.target.files[0]);
+});
+document.getElementById('btnReconGerarPreview').addEventListener('click', buildReconcilePreview);
+document.getElementById('btnReconConfirmar').addEventListener('click', confirmReconcile);
+
+populateSelects();
+loadEntries();
+loadImportedKeys();
+loadResponsavelEmail();
+
+async function migrarDadosAntigosNftsSeNecessario(){
+  await firebaseProntoPromise;
+  await primeiraCargaPromiseNfts;
+  try{
+    let jaMigrado = false;
+    try{
+      const flag = await storage.get('nfts:migrado-firebase');
+      jaMigrado = flag && flag.value === 'true';
+    }catch(e){}
+    if(jaMigrado) return;
+
+    const marcarComoFeito = async () => { try{ await storage.set('nfts:migrado-firebase', 'true'); }catch(e){} };
+
+    const antigo = await storage.get('nfts:entries').catch(()=>null);
+    if(!antigo || !antigo.value){ await marcarComoFeito(); return; }
+    const entriesAntigas = JSON.parse(antigo.value);
+    if(!Array.isArray(entriesAntigas) || entriesAntigas.length === 0){ await marcarComoFeito(); return; }
+
+    const snap = await db.collection(NFTS_COLLECTION).get();
+    const chavesExistentes = new Set();
+    const assinaturasExistentes = new Set();
+    snap.docs.forEach(doc=>{
+      const d = doc.data();
+      if(d.qiveChave) chavesExistentes.add(d.qiveChave);
+      assinaturasExistentes.add(`${normalizeStr(d.prestador)}|${d.dataServico}`);
+    });
+
+    const faltando = entriesAntigas.filter(e=>{
+      if(!e.id) return false;
+      if(e.qiveChave && chavesExistentes.has(e.qiveChave)) return false;
+      const assinatura = `${normalizeStr(e.prestador)}|${e.dataServico}`;
+      if(assinaturasExistentes.has(assinatura)) return false;
+      return true;
+    });
+
+    if(faltando.length === 0){ await marcarComoFeito(); return; }
+
+    if(!confirm(`Encontrei ${faltando.length} lançamento(s) de NFTS salvos localmente neste computador que ainda não estão no Firebase. Transportar agora?`)){
+      return;
+    }
+
+    let migradas = 0;
+    for(const e of faltando){
+      await db.collection(NFTS_COLLECTION).doc(e.id).set(e);
+      migradas++;
+    }
+
+    const chavesAntigas = await storage.get('nfts:imported-keys').catch(()=>null);
+    if(chavesAntigas && chavesAntigas.value){
+      const setAntigo = new Set(JSON.parse(chavesAntigas.value));
+      const docAtual = await db.collection('meta').doc('importedKeysNfts').get();
+      const atuais = new Set(docAtual.exists ? (docAtual.data().keys || []) : []);
+      setAntigo.forEach(k => atuais.add(k));
+      await db.collection('meta').doc('importedKeysNfts').set({ keys: [...atuais] });
+    }
+
+    await marcarComoFeito();
+    alert(`${migradas} lançamento(s) de NFTS migrados para o Firebase. Se sobrar alguma duplicata, use o botão "Remover duplicados".`);
+  }catch(e){
+    console.error('Falha na migração automática de NFTS', e);
+  }
+}
+
+async function migrarAnexosAntigosNftsSeNecessario(){
+  await firebaseProntoPromise;
+  await primeiraCargaPromiseNfts;
+  try{
+    let jaMigrado = false;
+    try{
+      const flag = await storage.get('nfts:anexos-migrados-firebase');
+      jaMigrado = flag && flag.value === 'true';
+    }catch(e){}
+    if(jaMigrado) return;
+
+    const marcarComoFeito = async () => { try{ await storage.set('nfts:anexos-migrados-firebase', 'true'); }catch(e){} };
+
+    const candidatos = [];
+    for(const e of entries){
+      if(!e.temAnexo) continue;
+      const local = await storage.get(`nfts:anexo:${e.id}`).catch(()=>null);
+      if(local && local.value) candidatos.push({ id: e.id, dataUrl: local.value, nome: e.anexoNome || '' });
+    }
+    if(candidatos.length === 0){ await marcarComoFeito(); return; }
+
+    if(!confirm(`Encontrei ${candidatos.length} PDF(s) de NFTS anexados neste computador que ainda não foram compartilhados com todo mundo. Enviar agora?`)){
+      return;
+    }
+
+    let enviados = 0;
+    for(const c of candidatos){
+      try{
+        const jaExiste = await db.collection('anexosNfts').doc(c.id).get();
+        if(jaExiste.exists) continue;
+        await salvarAnexoFirestoreNfts(c.id, c.dataUrl, c.nome);
+        enviados++;
+      }catch(e){ console.error('Falha ao migrar anexo NFTS', c.id, e); }
+    }
+    await marcarComoFeito();
+    alert(`${enviados} PDF(s) de NFTS enviados para o Firebase.`);
+  }catch(e){
+    console.error('Falha na migração de anexos de NFTS', e);
+  }
+}
+
+migrarDadosAntigosNftsSeNecessario().then(() => migrarAnexosAntigosNftsSeNecessario());
+
+})();
 </script>
 </body>
 </html>
