@@ -2995,7 +2995,14 @@ document.getElementById('razaoFileInput').addEventListener('change', (ev)=>{ if(
 document.getElementById('btnRazaoConfirmar').addEventListener('click', confirmarRazao);
 
 document.getElementById('btnApagarTudo').addEventListener('click', async ()=>{
-  if(entries.length === 0){ alert('Não há lançamentos para apagar.'); return; }
+  if(entries.length === 0){
+    if(importedKeys.size === 0){ alert('Não há lançamentos para apagar, e a lista de controle de importação já está vazia.'); return; }
+    if(!confirm(`Não há lançamentos na tela, mas a lista de controle de importação ainda guarda ${importedKeys.size} chave(s) de importações anteriores (isso trava reimportações). Limpar essa lista agora?`)) return;
+    importedKeys = new Set();
+    await saveImportedKeys();
+    alert('Lista de controle de importação limpa. Pode reimportar do zero.');
+    return;
+  }
   const total = entries.length;
   if(!confirm(`Isso vai apagar TODOS os ${total} lançamento(s) e seus anexos, sem volta. Tem certeza?`)) return;
   if(!confirm('Confirme mais uma vez: apagar tudo mesmo?')) return;
@@ -3044,7 +3051,14 @@ document.getElementById('btnApagarConciliacao').addEventListener('click', async 
 
 document.getElementById('btnApagarImportacaoQive').addEventListener('click', async ()=>{
   const daQive = entries.filter(e => e.observacoes === 'Importado da Qive');
-  if(daQive.length === 0){ alert('Não há lançamentos importados da Qive para apagar (lançamentos manuais não são afetados).'); return; }
+  if(daQive.length === 0){
+    if(importedKeys.size === 0){ alert('Não há lançamentos importados da Qive para apagar, e a lista de controle de importação já está vazia.'); return; }
+    if(!confirm(`Não há lançamentos da Qive na tela, mas a lista de controle de importação ainda guarda ${importedKeys.size} chave(s) de importações anteriores (isso trava reimportações). Limpar essa lista agora?`)) return;
+    importedKeys = new Set();
+    await saveImportedKeys();
+    alert('Lista de controle de importação limpa. Pode reimportar a planilha.');
+    return;
+  }
   if(!confirm(`Isso vai apagar ${daQive.length} lançamento(s) importados da Qive (e seus anexos), mantendo os criados manualmente. Também libera essas notas para serem reimportadas depois. Confirma?`)) return;
   if(!confirm('Confirme mais uma vez: apagar a importação da Qive mesmo?')) return;
 
@@ -6883,7 +6897,14 @@ document.getElementById('st_razaoFileInput').addEventListener('change', (ev)=>{ 
 document.getElementById('st_btnRazaoConfirmar').addEventListener('click', confirmarRazao);
 
 document.getElementById('st_btnApagarTudo').addEventListener('click', async ()=>{
-  if(entries.length === 0){ alert('Não há lançamentos para apagar.'); return; }
+  if(entries.length === 0){
+    if(importedKeys.size === 0){ alert('Não há lançamentos para apagar, e a lista de controle de importação já está vazia.'); return; }
+    if(!confirm(`Não há lançamentos na tela, mas a lista de controle de importação ainda guarda ${importedKeys.size} chave(s) de importações anteriores (isso trava reimportações). Limpar essa lista agora?`)) return;
+    importedKeys = new Set();
+    await saveImportedKeys();
+    alert('Lista de controle de importação limpa. Pode reimportar do zero.');
+    return;
+  }
   const total = entries.length;
   if(!confirm(`Isso vai apagar TODOS os ${total} lançamento(s) e seus anexos, sem volta. Tem certeza?`)) return;
   if(!confirm('Confirme mais uma vez: apagar tudo mesmo?')) return;
@@ -6932,7 +6953,14 @@ document.getElementById('st_btnApagarConciliacao').addEventListener('click', asy
 
 document.getElementById('st_btnApagarImportacaoQive').addEventListener('click', async ()=>{
   const daQive = entries.filter(e => e.observacoes === 'Importado da Qive');
-  if(daQive.length === 0){ alert('Não há lançamentos importados da Qive para apagar (lançamentos manuais não são afetados).'); return; }
+  if(daQive.length === 0){
+    if(importedKeys.size === 0){ alert('Não há lançamentos importados da Qive para apagar, e a lista de controle de importação já está vazia.'); return; }
+    if(!confirm(`Não há lançamentos da Qive na tela, mas a lista de controle de importação ainda guarda ${importedKeys.size} chave(s) de importações anteriores (isso trava reimportações). Limpar essa lista agora?`)) return;
+    importedKeys = new Set();
+    await saveImportedKeys();
+    alert('Lista de controle de importação limpa. Pode reimportar a planilha.');
+    return;
+  }
   if(!confirm(`Isso vai apagar ${daQive.length} lançamento(s) importados da Qive (e seus anexos), mantendo os criados manualmente. Também libera essas notas para serem reimportadas depois. Confirma?`)) return;
   if(!confirm('Confirme mais uma vez: apagar a importação da Qive mesmo?')) return;
 
