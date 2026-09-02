@@ -440,6 +440,10 @@
       <button type="button" class="btn secondary xf-btn" data-campo="contaDebito">Todos ▾</button>
     </div>
     <div class="field">
+      <label>Impostos retidos</label>
+      <button type="button" class="btn secondary xf-btn" data-campo="impostosRetidos">Todos ▾</button>
+    </div>
+    <div class="field">
       <label for="st_fValorDe">Valor de (R$)</label>
       <input type="number" step="0.01" id="st_fValorDe" style="max-width:130px;">
     </div>
@@ -1247,6 +1251,7 @@
         <div><label for="st_mapData">Data de emissão</label><select id="st_mapData"></select></div>
         <div><label for="st_mapValor">Valor</label><select id="st_mapValor"></select></div>
         <div><label for="st_mapCodigoServico">Código de Serviço</label><select id="st_mapCodigoServico"></select></div>
+        <div><label for="st_mapDiscriminacao">Discriminação do serviço (texto)</label><select id="st_mapDiscriminacao"></select></div>
         <div><label for="st_mapStatus">Status (para ignorar canceladas)</label><select id="st_mapStatus"></select></div>
         <div><label for="st_mapPis">PIS retido (R$)</label><select id="st_mapPis"></select></div>
         <div><label for="st_mapCofins">COFINS retido (R$)</label><select id="st_mapCofins"></select></div>
@@ -5164,7 +5169,27 @@ const storage = {
 const DESTINATARIOS = ["Viva Gestão — Matriz (SP)", "Viva Gestão — Filial (SC)", "Outro"];
 
 // Código de Serviço não tem uma tabela universal de descrições como o CFOP
-function descricaoCodigoServico(codigo){ return ''; }
+let mapaDescricaoCodigoServico = {};
+function atualizarMapaDescricaoCodigoServico(){
+  const contagem = {};
+  entries.forEach(e=>{
+    const cod = (e.codigoServico||'').toString().trim();
+    const desc = (e.discriminacao||'').toString().trim();
+    if(!cod || !desc) return;
+    if(!contagem[cod]) contagem[cod] = {};
+    contagem[cod][desc] = (contagem[cod][desc]||0) + 1;
+  });
+  mapaDescricaoCodigoServico = {};
+  Object.keys(contagem).forEach(cod=>{
+    const opcoes = Object.entries(contagem[cod]).sort((a,b)=>b[1]-a[1]);
+    mapaDescricaoCodigoServico[cod] = opcoes[0][0];
+  });
+}
+function descricaoCodigoServico(codigo){
+  const bruto = (codigo||'').toString().trim();
+  const desc = mapaDescricaoCodigoServico[bruto] || '';
+  return desc.length > 80 ? desc.slice(0,78) + '…' : desc;
+}
 
 let entries = [];
 const NOTAS_COLLECTION = 'servicosTomados';
@@ -5260,9 +5285,9 @@ function fmtMoney(v){
 }
 function currentMonthKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
 
-const filtroSelecionados = { emitente: new Set(), destinatario: new Set(), status: new Set(), mes: new Set(), ano: new Set(), codigoServico: new Set(), analisado: new Set(), contaDebito: new Set() };
+const filtroSelecionados = { emitente: new Set(), destinatario: new Set(), status: new Set(), mes: new Set(), ano: new Set(), codigoServico: new Set(), analisado: new Set(), contaDebito: new Set(), impostosRetidos: new Set() };
 
-const CAMPO_LABELS = { emitente: 'Emitente', destinatario: 'Destinatário', status: 'Status', mes: 'Mês', ano: 'Ano', codigoServico: 'Código de Serviço', analisado: 'Analisado', contaDebito: 'Conta débito' };
+const CAMPO_LABELS = { emitente: 'Emitente', destinatario: 'Destinatário', status: 'Status', mes: 'Mês', ano: 'Ano', codigoServico: 'Código de Serviço', analisado: 'Analisado', contaDebito: 'Conta débito', impostosRetidos: 'Impostos retidos' };
 const MES_LABELS = { '01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro' };
 const STATUS_LABELS = { pendente:'Pendente', lancada:'Lançada', contabilizada:'Contabilizado', nao_contabilizada:'Lançada mas não contabilizada' };
 const ANALISADO_LABELS = { sim:'Já analisado', nao:'Ainda não analisado' };
@@ -5276,6 +5301,7 @@ function campoOpcoes(campo){
   if(campo === 'codigoServico') return [...new Set(entries.map(e => (e.codigoServico||'').toString().trim()).filter(Boolean))].sort().map(v=>({value:v, label: descricaoCodigoServico(v) ? `${v} - ${descricaoCodigoServico(v)}` : v}));
   if(campo === 'analisado') return Object.keys(ANALISADO_LABELS).map(v=>({value:v, label:ANALISADO_LABELS[v]}));
   if(campo === 'contaDebito') return [...new Set(entries.map(e => e.contaContabilNome || e.contaContabil || '').map(v=>v.trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR')).map(v=>({value:v, label:v}));
+  if(campo === 'impostosRetidos') return [{value:'com', label:'Com retenção'}, {value:'sem', label:'Sem retenção'}];
   return [];
 }
 
@@ -5283,6 +5309,11 @@ function atualizarBotoesFiltro(){
   document.getElementById('moduloServicosTomados').querySelectorAll('.xf-btn').forEach(btn=>{
     const campo = btn.dataset.campo;
     const sel = filtroSelecionados[campo];
+    if(btn.dataset.compact){
+      btn.textContent = sel.size === 0 ? '▾' : `▾ (${sel.size})`;
+      btn.style.color = sel.size === 0 ? '' : 'var(--accent)';
+      return;
+    }
     btn.textContent = (sel.size === 0 ? 'Todos' : `${CAMPO_LABELS[campo]} (${sel.size})`) + ' ▾';
   });
 }
@@ -5442,6 +5473,7 @@ function getFiltered(){
   const codigoServico = filtroSelecionados.codigoServico;
   const analisado = filtroSelecionados.analisado;
   const contaDebito = filtroSelecionados.contaDebito;
+  const impostosRetidos = filtroSelecionados.impostosRetidos;
   const numero = document.getElementById('st_fNumero').value.trim();
   const valorDe = document.getElementById('st_fValorDe').value;
   const valorAte = document.getElementById('st_fValorAte').value;
@@ -5466,6 +5498,7 @@ function getFiltered(){
     if(codigoServico.size && !codigoServico.has((e.codigoServico || '').toString().trim())) return false;
     if(analisado.size && !analisado.has(e.analisado ? 'sim' : 'nao')) return false;
     if(contaDebito.size && !contaDebito.has((e.contaContabilNome || e.contaContabil || '').trim())) return false;
+    if(impostosRetidos.size){ const temRetencao = ((Number(e.retidoPis)||0)+(Number(e.retidoCofins)||0)+(Number(e.retidoIr)||0)+(Number(e.retidoCsll)||0)+(Number(e.retidoIss)||0)+(Number(e.retidoInss)||0)) > 0; if(!impostosRetidos.has(temRetencao ? 'com' : 'sem')) return false; }
     if(valorDe && Number(e.valor) < Number(valorDe)) return false;
     if(valorAte && Number(e.valor) > Number(valorAte)) return false;
     if(de && (!e.dataEmissao || e.dataEmissao < de)) return false;
@@ -5586,7 +5619,7 @@ function renderTable(list){
   </tr>`).join('');
 
   container.innerHTML = `<table>
-    <thead><tr><th style="text-align:center;"><input type="checkbox" id="st_chkAnalisadoTodos" title="Marcar/desmarcar todos os exibidos como analisados" style="width:16px;height:16px;cursor:pointer;"></th><th>Emitente</th><th>Número</th><th>Emissão</th><th>Valor</th><th>Código de Serviço</th><th>Destinatário</th><th>Status</th><th>Conta débito</th><th>Impostos retidos</th><th>Regime do fornecedor</th><th></th></tr></thead>
+    <thead><tr><th style="text-align:center;"><input type="checkbox" id="st_chkAnalisadoTodos" title="Marcar/desmarcar todos os exibidos como analisados" style="width:16px;height:16px;cursor:pointer;"></th><th>Emitente <button type="button" class="xf-btn" data-compact="1" data-campo="emitente" style="all:unset;cursor:pointer;">▾</button></th><th>Número</th><th>Emissão</th><th>Valor</th><th>Código de Serviço <button type="button" class="xf-btn" data-compact="1" data-campo="codigoServico" style="all:unset;cursor:pointer;">▾</button></th><th>Destinatário <button type="button" class="xf-btn" data-compact="1" data-campo="destinatario" style="all:unset;cursor:pointer;">▾</button></th><th>Status <button type="button" class="xf-btn" data-compact="1" data-campo="status" style="all:unset;cursor:pointer;">▾</button></th><th>Conta débito <button type="button" class="xf-btn" data-compact="1" data-campo="contaDebito" style="all:unset;cursor:pointer;">▾</button></th><th>Impostos retidos <button type="button" class="xf-btn" data-compact="1" data-campo="impostosRetidos" style="all:unset;cursor:pointer;">▾</button></th><th>Regime do fornecedor</th><th></th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 
@@ -5627,6 +5660,7 @@ function renderTable(list){
 }
 
 function render(){
+  atualizarMapaDescricaoCodigoServico();
   atualizarBotoesFiltro();
   const filtered = sortEntries(getFiltered());
   renderStats(entries);
@@ -5641,8 +5675,20 @@ function render(){
 
   renderResumoCodigoServico(filtered);
 
-  if(abaAtiva === 'dashboard') renderDashboard();
+  if(abaAtivaSt === 'dashboard') renderDashboard();
 }
+
+// ---- Sub-abas (Lançamentos / Dashboard) ----
+let abaAtivaSt = 'lancamentos';
+document.querySelectorAll('[data-st-view]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    abaAtivaSt = btn.dataset.stView;
+    document.querySelectorAll('[data-st-view]').forEach(b => b.classList.toggle('active', b === btn));
+    document.getElementById('st_viewLancamentos').style.display = abaAtivaSt === 'lancamentos' ? 'block' : 'none';
+    document.getElementById('st_viewDashboard').style.display = abaAtivaSt === 'dashboard' ? 'block' : 'none';
+    if(abaAtivaSt === 'dashboard') renderDashboard();
+  });
+});
 
 let resumoCodigoServicoOrdem = { campo: 'qtd', dir: -1 };
 const resumoCodigoServicoFiltros = { codigoServico: new Set(), descricao: new Set(), qtd: new Set(), valor: new Set() };
@@ -5989,6 +6035,7 @@ function goToStep2(){
   fill('st_mapData').value = guessColumn(importHeaders, [['data','emissao'],['emissao'],['data']]);
   fill('st_mapValor').value = guessColumn(importHeaders, [['valor','servico'],['valor']]);
   fill('st_mapCodigoServico').value = guessColumn(importHeaders, [['codigo','servico']]);
+  fill('st_mapDiscriminacao').value = guessColumn(importHeaders, [['discriminacao']]);
   fill('st_mapStatus').value = guessColumn(importHeaders, [['cancelada'],['status']]);
   fill('st_mapPis').value = guessColumn(importHeaders, [['pis']]);
   fill('st_mapCofins').value = guessColumn(importHeaders, [['cofins']]);
@@ -6160,6 +6207,7 @@ function buildPreview(){
   const iCsll = parseInt(document.getElementById('st_mapCsll').value);
   const iIss = parseInt(document.getElementById('st_mapIss').value);
   const iInss = parseInt(document.getElementById('st_mapInss').value);
+  const iDiscriminacao = parseInt(document.getElementById('st_mapDiscriminacao').value);
 
   previewRows = [];
   let importadasCanceladas = 0, skippedDup = 0;
@@ -6190,7 +6238,8 @@ function buildPreview(){
       retidoIr: iIr >= 0 ? parseValorBR(row[iIr]) : 0,
       retidoCsll: iCsll >= 0 ? parseValorBR(row[iCsll]) : 0,
       retidoIss: iIss >= 0 ? parseValorBR(row[iIss]) : 0,
-      retidoInss: iInss >= 0 ? parseValorBR(row[iInss]) : 0
+      retidoInss: iInss >= 0 ? parseValorBR(row[iInss]) : 0,
+      discriminacao: iDiscriminacao >= 0 ? (row[iDiscriminacao] || '').toString().trim() : ''
     });
   });
 
@@ -6247,6 +6296,7 @@ function confirmImport(){
       retidoCsll: r.retidoCsll || 0,
       retidoIss: r.retidoIss || 0,
       retidoInss: r.retidoInss || 0,
+      discriminacao: r.discriminacao || '',
       lancada: false,
       dataLancamento: '',
       observacoes: 'Importado da Qive',
