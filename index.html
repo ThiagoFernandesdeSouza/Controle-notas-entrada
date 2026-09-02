@@ -3055,12 +3055,12 @@ document.getElementById('btnApagarImportacaoQive').addEventListener('click', asy
     if(daQive[i].temAnexo){
       try{ await excluirAnexoFirestore(daQive[i].id); }catch(e){}
     }
-    if(daQive[i].chave) importedKeys.delete(daQive[i].chave);
     await sleep(80);
   }
   const idsRemover = new Set(daQive.map(e=>e.id));
   entries = entries.filter(e => !idsRemover.has(e.id));
   for(const id of idsRemover) await excluirNotaFirestore(id);
+  importedKeys = new Set();
   await saveImportedKeys();
   btn.textContent = 'Apagar importação Qive';
   btn.disabled = false;
@@ -6943,12 +6943,12 @@ document.getElementById('st_btnApagarImportacaoQive').addEventListener('click', 
     if(daQive[i].temAnexo){
       try{ await excluirAnexoFirestore(daQive[i].id); }catch(e){}
     }
-    if(daQive[i].chave) importedKeys.delete(daQive[i].chave);
     await sleep(80);
   }
   const idsRemover = new Set(daQive.map(e=>e.id));
   entries = entries.filter(e => !idsRemover.has(e.id));
   for(const id of idsRemover) await excluirNotaFirestore(id);
+  importedKeys = new Set();
   await saveImportedKeys();
   btn.textContent = 'Apagar importação Qive';
   btn.disabled = false;
