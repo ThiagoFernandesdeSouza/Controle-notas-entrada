@@ -5252,17 +5252,30 @@ async function loadEntries(){
   });
 }
 
+function sanitizarParaFirestore(obj){
+  const limpo = {};
+  Object.keys(obj).forEach(k=>{ limpo[k] = (obj[k] === undefined) ? '' : obj[k]; });
+  return limpo;
+}
+
 async function saveEntries(){
   await firebaseProntoPromise;
-  try{
-    for(let inicio = 0; inicio < entries.length; inicio += 450){
+  let salvos = 0;
+  for(let inicio = 0; inicio < entries.length; inicio += 450){
+    const lote = entries.slice(inicio, inicio + 450);
+    try{
       const batch = db.batch();
-      entries.slice(inicio, inicio + 450).forEach(e=>{
-        batch.set(db.collection(NOTAS_COLLECTION).doc(e.id), e);
+      lote.forEach(e=>{
+        batch.set(db.collection(NOTAS_COLLECTION).doc(e.id), sanitizarParaFirestore(e));
       });
       await batch.commit();
+      salvos += lote.length;
+    }catch(e){
+      console.error('Falha ao salvar lote', inicio, e);
+      alert(`Só consegui salvar ${salvos} de ${entries.length} lançamento(s) — o lote seguinte falhou (${e.message || e}). Os que faltaram continuam só na tela; recarregue com cuidado e me avise pra eu investigar antes de reimportar.`);
+      return;
     }
-  }catch(e){ console.error('Falha ao salvar', e); }
+  }
 }
 
 async function excluirNotaFirestore(id){
@@ -6293,14 +6306,14 @@ function buildPreview(){
 
     previewRows.push({
       chave: chaveDedup,
-      emitente: iEmitente >= 0 ? row[iEmitente] : '(emitente não identificado)',
-      cnpjEmitente: iCnpjEmitente >= 0 ? row[iCnpjEmitente] : '',
+      emitente: iEmitente >= 0 ? ((row[iEmitente] || '').toString().trim() || '(emitente não identificado)') : '(emitente não identificado)',
+      cnpjEmitente: iCnpjEmitente >= 0 ? (row[iCnpjEmitente] || '').toString().trim() : '',
       cnpjEmitenteDigits: iCnpjEmitente >= 0 ? (row[iCnpjEmitente] || '').toString().replace(/\D/g, '') : '',
       numero: iNumero >= 0 ? (row[iNumero] || '').toString().trim() : '',
       destinatario: iCnpjDest >= 0 ? detectDestinatario(row[iCnpjDest]) : 'Outro',
       dataEmissao: iData >= 0 ? excelDateToISO(row[iData]) : '',
       valor: valorNum,
-      codigoServico: iCodigoServico >= 0 ? row[iCodigoServico] : '',
+      codigoServico: iCodigoServico >= 0 ? (row[iCodigoServico] || '').toString().trim() : '',
       cancelada: cancelada,
       retidoPis: iPis >= 0 ? parseValorBR(row[iPis]) : 0,
       retidoCofins: iCofins >= 0 ? parseValorBR(row[iCofins]) : 0,
