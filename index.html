@@ -5657,6 +5657,14 @@ function renderTable(list){
   container.querySelectorAll('[data-action="consultar-regime"]').forEach(btn=>{
     btn.addEventListener('click', ()=>consultarRegimeUnico(btn.dataset.id));
   });
+  container.querySelectorAll('.xf-btn').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      if(xfCampoAtual === btn.dataset.campo){ fecharPainelFiltro(); return; }
+      abrirPainelFiltro(btn.dataset.campo, btn);
+    });
+  });
+  atualizarBotoesFiltro();
 }
 
 function render(){
