@@ -5170,6 +5170,30 @@ const DESTINATARIOS = ["Viva Gestão — Matriz (SP)", "Viva Gestão — Filial 
 
 // Código de Serviço não tem uma tabela universal de descrições como o CFOP
 let mapaDescricaoCodigoServico = {};
+let descricoesManuaisCodigoServico = {};
+
+async function loadDescricoesManuaisCodigoServico(){
+  await firebaseProntoPromise;
+  db.collection('descricoesCodigoServico').onSnapshot(snapshot=>{
+    descricoesManuaisCodigoServico = {};
+    snapshot.docs.forEach(doc => { descricoesManuaisCodigoServico[doc.id] = doc.data().descricao || ''; });
+    render();
+  }, err=>{ console.error('Erro ao sincronizar descrições de código de serviço', err); });
+}
+
+async function definirDescricaoManualCodigoServico(codigo){
+  const atual = descricoesManuaisCodigoServico[codigo] || '';
+  const nova = prompt(`Descrição para o código de serviço "${codigo}" (fica salva pra sempre, sobrepõe a detecção automática):`, atual);
+  if(nova === null) return; // cancelou
+  try{
+    if(nova.trim() === ''){
+      await db.collection('descricoesCodigoServico').doc(codigo).delete();
+    } else {
+      await db.collection('descricoesCodigoServico').doc(codigo).set({ descricao: nova.trim() });
+    }
+  }catch(e){ alert('Não consegui salvar a descrição.'); }
+}
+
 function atualizarMapaDescricaoCodigoServico(){
   const contagem = {};
   entries.forEach(e=>{
@@ -5187,6 +5211,7 @@ function atualizarMapaDescricaoCodigoServico(){
 }
 function descricaoCodigoServico(codigo){
   const bruto = (codigo||'').toString().trim();
+  if(descricoesManuaisCodigoServico[bruto]) return descricoesManuaisCodigoServico[bruto];
   const desc = mapaDescricaoCodigoServico[bruto] || '';
   return desc.length > 80 ? desc.slice(0,78) + '…' : desc;
 }
@@ -5753,10 +5778,14 @@ function renderResumoCodigoServico(filtered){
     </tr></thead>
     <tbody>${linhas.map(([codigoServico, g])=>`<tr>
       <td>${escapeHtml(codigoServico)}</td>
-      <td>${escapeHtml(descricaoCodigoServico(codigoServico) || '—')}</td>
+      <td>${escapeHtml(descricaoCodigoServico(codigoServico) || '—')} <button type="button" class="link-btn" data-action="editar-descricao-codigo" data-codigo="${escapeHtml(codigoServico)}">editar</button></td>
       <td class="num-col">${g.qtd}</td>
       <td class="num-col">${fmtMoney(g.valor)}</td>
     </tr>`).join('')}</tbody>`;
+
+  tabela.querySelectorAll('[data-action="editar-descricao-codigo"]').forEach(btn=>{
+    btn.addEventListener('click', ()=> definirDescricaoManualCodigoServico(btn.dataset.codigo));
+  });
 
   tabela.querySelectorAll('.xf-th-btn').forEach(btn=>{
     btn.addEventListener('click', (ev)=>{
@@ -7047,6 +7076,7 @@ populateSelects();
 loadEntries();
 loadImportedKeys();
 loadRegrasRetencao();
+loadDescricoesManuaisCodigoServico();
 
 
 })();
