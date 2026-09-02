@@ -5344,7 +5344,7 @@ function abrirPainelFiltro(campo, btnEl){
         <span>${escapeHtml(o.label)}</span>
       </label>`).join('') || '<p class="hint">Nenhuma opção encontrada.</p>';
 
-    document.querySelectorAll('#xfList input[type="checkbox"]').forEach(chk=>{
+    document.querySelectorAll('#st_xfList input[type="checkbox"]').forEach(chk=>{
       chk.addEventListener('change', (ev)=>{
         if(ev.target.checked) xfTrabalho.add(ev.target.value);
         else xfTrabalho.delete(ev.target.value);
@@ -5357,7 +5357,7 @@ function abrirPainelFiltro(campo, btnEl){
 
     document.getElementById('st_xfSelectAll').onchange = (ev)=>{
       visiveis.forEach(o => { if(ev.target.checked) xfTrabalho.add(o.value); else xfTrabalho.delete(o.value); });
-      document.querySelectorAll('#xfList input[type="checkbox"]').forEach(chk => chk.checked = ev.target.checked);
+      document.querySelectorAll('#st_xfList input[type="checkbox"]').forEach(chk => chk.checked = ev.target.checked);
     };
   };
 
@@ -5422,7 +5422,7 @@ function abrirPainelResumoCodigoServico(campo, btnEl, todasLinhas){
         <span>${escapeHtml(o)}</span>
       </label>`).join('') || '<p class="hint">Nenhuma opção encontrada.</p>';
 
-    document.querySelectorAll('#cfList input[type="checkbox"]').forEach(chk=>{
+    document.querySelectorAll('#st_cfList input[type="checkbox"]').forEach(chk=>{
       chk.addEventListener('change', (ev)=>{
         if(ev.target.checked) cfTrabalho.add(ev.target.value);
         else cfTrabalho.delete(ev.target.value);
@@ -5432,7 +5432,7 @@ function abrirPainelResumoCodigoServico(campo, btnEl, todasLinhas){
     document.getElementById('st_cfSelectAll').checked = visiveis.length > 0 && visiveis.every(o => cfTrabalho.has(o));
     document.getElementById('st_cfSelectAll').onchange = (ev)=>{
       visiveis.forEach(o => { if(ev.target.checked) cfTrabalho.add(o); else cfTrabalho.delete(o); });
-      document.querySelectorAll('#cfList input[type="checkbox"]').forEach(chk => chk.checked = ev.target.checked);
+      document.querySelectorAll('#st_cfList input[type="checkbox"]').forEach(chk => chk.checked = ev.target.checked);
     };
   };
 
