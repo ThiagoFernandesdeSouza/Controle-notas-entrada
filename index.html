@@ -1600,11 +1600,13 @@ async function loadEntries(){
 async function saveEntries(){
   await firebaseProntoPromise;
   try{
-    const batch = db.batch();
-    entries.forEach(e=>{
-      batch.set(db.collection(NOTAS_COLLECTION).doc(e.id), e);
-    });
-    await batch.commit();
+    for(let inicio = 0; inicio < entries.length; inicio += 450){
+      const batch = db.batch();
+      entries.slice(inicio, inicio + 450).forEach(e=>{
+        batch.set(db.collection(NOTAS_COLLECTION).doc(e.id), e);
+      });
+      await batch.commit();
+    }
   }catch(e){ console.error('Falha ao salvar', e); }
 }
 
@@ -3358,9 +3360,11 @@ async function loadEntries(){
 async function saveEntries(){
   await firebaseProntoPromise;
   try{
-    const batch = db.batch();
-    entries.forEach(e=>{ batch.set(db.collection(NFTS_COLLECTION).doc(e.id), e); });
-    await batch.commit();
+    for(let inicio = 0; inicio < entries.length; inicio += 450){
+      const batch = db.batch();
+      entries.slice(inicio, inicio + 450).forEach(e=>{ batch.set(db.collection(NFTS_COLLECTION).doc(e.id), e); });
+      await batch.commit();
+    }
   }catch(e){
     console.error('Falha ao salvar', e);
   }
@@ -5237,11 +5241,13 @@ async function loadEntries(){
 async function saveEntries(){
   await firebaseProntoPromise;
   try{
-    const batch = db.batch();
-    entries.forEach(e=>{
-      batch.set(db.collection(NOTAS_COLLECTION).doc(e.id), e);
-    });
-    await batch.commit();
+    for(let inicio = 0; inicio < entries.length; inicio += 450){
+      const batch = db.batch();
+      entries.slice(inicio, inicio + 450).forEach(e=>{
+        batch.set(db.collection(NOTAS_COLLECTION).doc(e.id), e);
+      });
+      await batch.commit();
+    }
   }catch(e){ console.error('Falha ao salvar', e); }
 }
 
