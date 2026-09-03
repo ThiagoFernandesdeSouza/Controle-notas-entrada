@@ -171,6 +171,9 @@
   .fs-row.fs-highlight{outline:2px solid var(--accent);outline-offset:3px;border-radius:var(--radius-sm);}
   .th-jump-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;padding:2px 4px;}
   .th-jump-btn:hover{color:var(--ink);}
+  #tableContainer,#st_tableContainer,#nfts_tableContainer{max-height:66vh;overflow:auto;border:1px solid var(--line);border-radius:var(--radius-sm);}
+  #tableContainer table,#st_tableContainer table,#nfts_tableContainer table{border:none;}
+  #tableContainer thead th,#st_tableContainer thead th,#nfts_tableContainer thead th{position:sticky;top:0;background:var(--panel);z-index:2;}
   @media (max-width:900px){
     .content-layout{flex-direction:column;}
     .filter-sidebar{width:100%;position:static;}
