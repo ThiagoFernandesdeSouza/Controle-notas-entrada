@@ -563,6 +563,7 @@
 
       <div class="fs-actions">
         <button class="btn secondary" id="st_btnMarcarFiltradas">Marcar filtradas como lançadas</button>
+        <button class="btn secondary" id="st_btnExportarExcel">Exportar filtradas (Excel)</button>
         <button class="btn secondary" id="st_btnLimpar">Limpar filtros</button>
       </div>
     </aside>
@@ -6177,6 +6178,29 @@ document.getElementById('st_btnMarcarFiltradas').addEventListener('click', ()=>{
   saveEntries();
   render();
 });
+document.getElementById('st_btnExportarExcel').addEventListener('click', ()=>{
+  const filtrados = getFiltered();
+  if(filtrados.length === 0){ alert('Nada no filtro atual pra exportar.'); return; }
+  const linhas = filtrados.map(e=>({
+    'Emitente': e.emitente || '',
+    'CNPJ Emitente': e.cnpjEmitente || '',
+    'Número': e.numero || '',
+    'Emissão': e.dataEmissao ? fmtDate(e.dataEmissao) : '',
+    'Valor': Number(e.valor) || 0,
+    'Código de Serviço': e.codigoServico || '',
+    'Destinatário': e.destinatario || '',
+    'Status': e.cancelada ? 'Cancelada' : (e.lancada ? (e.contabilizada ? 'Contabilizado' : 'Lançada mas não contabilizada') : 'Pendente'),
+    'Conta débito': e.contaContabilNome || e.contaContabil || '',
+    'Impostos retidos': (Number(e.retidoPis||0)+Number(e.retidoCofins||0)+Number(e.retidoIr||0)+Number(e.retidoCsll||0)+Number(e.retidoIss||0)+Number(e.retidoInss||0)),
+    'Regime do fornecedor': e.regimeTributario || '',
+    'Discriminação': e.discriminacao || ''
+  }));
+  const ws = XLSX.utils.json_to_sheet(linhas);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Serviços Tomados');
+  const hoje = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `servicos-tomados-filtrado-${hoje}.xlsx`);
+});
 
 document.getElementById('st_btnRemoverDuplicados').addEventListener('click', ()=>{
   const grupos = new Map();
@@ -7209,13 +7233,14 @@ function renderDashboard(){
   const valorLancado = lancadas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
   const valorTotal = naoCanceladas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
   const contabilizadas = naoCanceladas.filter(e => e.contabilizada).length;
+  const valorCanceladas = canceladas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
 
   document.getElementById('st_dashKpis').innerHTML = `
     <div class="stat warn"><span class="num">${fmtMoney(valorPendente)}</span><span class="label">Valor pendente de lançamento (${pendentes.length} nota(s))</span></div>
     <div class="stat ok"><span class="num">${fmtMoney(valorLancado)}</span><span class="label">Valor já lançado (${lancadas.length} nota(s))</span></div>
     <div class="stat"><span class="num">${fmtMoney(valorTotal)}</span><span class="label">Valor total (${naoCanceladas.length} nota(s), sem contar canceladas)</span></div>
     <div class="stat"><span class="num">${contabilizadas}</span><span class="label">Notas já contabilizadas no razão</span></div>
-    <div class="stat"><span class="num">${canceladas.length}</span><span class="label">Notas canceladas</span></div>
+    <div class="stat"><span class="num">${fmtMoney(valorCanceladas)}</span><span class="label">Valor cancelado (${canceladas.length} nota(s))</span></div>
   `;
 
   if(typeof Chart === 'undefined'){
