@@ -3436,7 +3436,7 @@ function renderDashboard(){
 
   // Gráfico 2: status (pendente / lançada não contabilizada / contabilizada)
   const stLancadaNaoCont = naoCanceladas.filter(e => e.lancada && !e.contabilizada).length;
-  const stContabilizada = contabilizadas;
+  const stContabilizada = contabilizadasList.length;
   const stPendente = pendentes.length;
   destruirGrafico('status');
   chartsInstancias['status'] = new Chart(document.getElementById('chartStatus'), {
@@ -7328,7 +7328,7 @@ function renderDashboard(){
 
   // Gráfico 2: status (pendente / lançada não contabilizada / contabilizada / cancelada)
   const stLancadaNaoCont = naoCanceladas.filter(e => e.lancada && !e.contabilizada).length;
-  const stContabilizada = contabilizadas;
+  const stContabilizada = contabilizadasList.length;
   const stPendente = pendentes.length;
   destruirGraficoSt('status');
   chartsInstanciasSt['status'] = new Chart(document.getElementById('st_chartStatus'), {
