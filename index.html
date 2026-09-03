@@ -3395,7 +3395,7 @@ function renderDashboard(){
   const valorTotal = naoCanceladas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
   const contabilizadasList = naoCanceladas.filter(e => e.contabilizada);
   const valorContabilizado = contabilizadasList.reduce((s,e)=> s + (Number(e.valor)||0), 0);
-  const faltaContabilizar = lancadas.filter(e => !e.contabilizada);
+  const faltaContabilizar = naoCanceladas.filter(e => !e.contabilizada);
   const valorFaltaContabilizar = faltaContabilizar.reduce((s,e)=> s + (Number(e.valor)||0), 0);
 
   document.getElementById('dashKpis').innerHTML = `
@@ -7285,7 +7285,7 @@ function renderDashboard(){
   const valorTotal = naoCanceladas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
   const contabilizadasList = naoCanceladas.filter(e => e.contabilizada);
   const valorContabilizado = contabilizadasList.reduce((s,e)=> s + (Number(e.valor)||0), 0);
-  const faltaContabilizar = lancadas.filter(e => !e.contabilizada);
+  const faltaContabilizar = naoCanceladas.filter(e => !e.contabilizada);
   const valorFaltaContabilizar = faltaContabilizar.reduce((s,e)=> s + (Number(e.valor)||0), 0);
   const valorCanceladas = canceladas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
 
