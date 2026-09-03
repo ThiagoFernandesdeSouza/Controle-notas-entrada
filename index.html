@@ -5533,7 +5533,7 @@ const filtroSelecionados = { emitente: new Set(), destinatario: new Set(), statu
 
 const CAMPO_LABELS = { emitente: 'Emitente', destinatario: 'Destinatário', status: 'Status', mes: 'Mês', ano: 'Ano', codigoServico: 'Código de Serviço', analisado: 'Analisado', contaDebito: 'Conta débito', impostosRetidos: 'Impostos retidos', numero: 'Número', valor: 'Valor', dataEmissao: 'Emissão', regimeTributario: 'Regime do fornecedor' };
 const MES_LABELS = { '01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro' };
-const STATUS_LABELS = { pendente:'Pendente', lancada:'Lançada', contabilizada:'Contabilizado', nao_contabilizada:'Lançada mas não contabilizada' };
+const STATUS_LABELS = { pendente:'Pendente', lancada:'Lançada', contabilizada:'Contabilizado', nao_contabilizada:'Lançada mas não contabilizada', cancelada:'Cancelada' };
 const ANALISADO_LABELS = { sim:'Já analisado', nao:'Ainda não analisado' };
 
 function campoOpcoes(campo){
@@ -5740,6 +5740,7 @@ function getFiltered(){
         if(st === 'lancada') return e.lancada;
         if(st === 'contabilizada') return !!e.contabilizada;
         if(st === 'nao_contabilizada') return e.lancada && !e.contabilizada;
+        if(st === 'cancelada') return !!e.cancelada;
         return false;
       });
       if(!passaAlgum) return false;
