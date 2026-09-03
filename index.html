@@ -150,6 +150,31 @@
   .xf-th-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;padding:2px 4px;}
   .xf-th-btn:hover{color:var(--ink);}
   .xf-th-label{white-space:nowrap;}
+
+  .content-layout{display:flex;gap:22px;align-items:flex-start;}
+  .content-main{flex:1;min-width:0;}
+  .filter-sidebar{width:248px;flex-shrink:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px 14px;position:sticky;top:16px;}
+  .fs-section{margin-bottom:16px;}
+  .fs-section:last-of-type{margin-bottom:12px;}
+  .fs-section-title{font-size:11px;font-weight:600;letter-spacing:.03em;color:var(--muted);margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+  .fs-row{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+  .fs-row:last-child{margin-bottom:0;}
+  .fs-icon{width:23px;height:23px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;flex-shrink:0;letter-spacing:-.02em;}
+  .fs-control{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+  .fs-control label{font-size:11px;color:var(--muted);}
+  .fs-control .xf-btn{width:100%;min-width:0;}
+  .fs-control input,.fs-control select{width:100%;min-width:0;}
+  .fs-range{display:flex;gap:6px;}
+  .fs-range input{width:0;flex:1;}
+  .fs-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+  .fs-actions .btn{width:100%;}
+  .fs-row.fs-highlight{outline:2px solid var(--accent);outline-offset:3px;border-radius:var(--radius-sm);}
+  .th-jump-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;padding:2px 4px;}
+  .th-jump-btn:hover{color:var(--ink);}
+  @media (max-width:900px){
+    .content-layout{flex-direction:column;}
+    .filter-sidebar{width:100%;position:static;}
+  }
 </style>
 </head>
 <body>
@@ -216,74 +241,103 @@
     </div>
   </div>
 
-  <div class="filters">
-    <div class="field">
-      <label>Emitente</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="emitente">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label>Destinatário</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="destinatario">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label>Status</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="status">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label>Analisado</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="analisado">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label>Mês</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="mes">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label>Ano</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="ano">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label for="fNumero">Número do documento</label>
-      <input type="text" id="fNumero" placeholder="Buscar por número" style="max-width:150px;">
-    </div>
-    <div class="field">
-      <label>CFOP</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="cfop">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label>Conta débito</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="contaDebito">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label for="fValorDe">Valor de (R$)</label>
-      <input type="number" step="0.01" id="fValorDe" style="max-width:130px;">
-    </div>
-    <div class="field">
-      <label for="fValorAte">Até (R$)</label>
-      <input type="number" step="0.01" id="fValorAte" style="max-width:130px;">
-    </div>
-    <div class="field">
-      <label for="fDataDe">Emissão de</label>
-      <input type="date" id="fDataDe">
-    </div>
-    <div class="field">
-      <label for="fDataAte">Até</label>
-      <input type="date" id="fDataAte">
-    </div>
-    <div class="field">
-      <label for="fOrdenar">Ordenar por</label>
-      <select id="fOrdenar">
-        <option value="emissao_desc">Emissão (mais recente)</option>
-        <option value="emissao_asc">Emissão (mais antiga)</option>
-        <option value="valor_desc">Valor (maior primeiro)</option>
-        <option value="valor_asc">Valor (menor primeiro)</option>
-        <option value="fornecedor_asc">Fornecedor (A-Z)</option>
-        <option value="fornecedor_desc">Fornecedor (Z-A)</option>
-      </select>
-    </div>
-    <button class="btn secondary" id="btnMarcarFiltradas">Marcar filtradas como lançadas</button>
-    <button class="btn secondary" id="btnLimpar">Limpar filtros</button>
-  </div>
+  <div class="content-layout">
+    <aside class="filter-sidebar">
+      <div class="fs-section">
+        <p class="fs-section-title">IDENTIFICAÇÃO</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#2E5266;">EM</span>
+          <div class="fs-control"><label>Emitente</label><button type="button" class="btn secondary xf-btn" data-campo="emitente">Todos ▾</button></div>
+        </div>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#3A8FA3;">DE</span>
+          <div class="fs-control"><label>Destinatário</label><button type="button" class="btn secondary xf-btn" data-campo="destinatario">Todos ▾</button></div>
+        </div>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#4B7A3E;">NU</span>
+          <div class="fs-control"><label for="fNumero">Número do documento</label><input type="text" id="fNumero" placeholder="Buscar por número"></div>
+        </div>
+      </div>
 
+      <div class="fs-section">
+        <p class="fs-section-title">PERÍODO</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#B5762A;">ME</span>
+          <div class="fs-control"><label>Mês</label><button type="button" class="btn secondary xf-btn" data-campo="mes">Todos ▾</button></div>
+        </div>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#9A6A4B;">AO</span>
+          <div class="fs-control"><label>Ano</label><button type="button" class="btn secondary xf-btn" data-campo="ano">Todos ▾</button></div>
+        </div>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#8E6BAF;">DT</span>
+          <div class="fs-control">
+            <label>Emissão de / até</label>
+            <div class="fs-range"><input type="date" id="fDataDe"><input type="date" id="fDataAte"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fs-section">
+        <p class="fs-section-title">STATUS</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#A23E3E;">ST</span>
+          <div class="fs-control"><label>Status</label><button type="button" class="btn secondary xf-btn" data-campo="status">Todos ▾</button></div>
+        </div>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#C1502E;">AN</span>
+          <div class="fs-control"><label>Analisado</label><button type="button" class="btn secondary xf-btn" data-campo="analisado">Todos ▾</button></div>
+        </div>
+      </div>
+
+      <div class="fs-section">
+        <p class="fs-section-title">VALORES</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#2F6E5E;">VL</span>
+          <div class="fs-control">
+            <label>Valor de / até (R$)</label>
+            <div class="fs-range"><input type="number" step="0.01" id="fValorDe"><input type="number" step="0.01" id="fValorAte"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fs-section">
+        <p class="fs-section-title">CONTÁBIL</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#6B7280;">CF</span>
+          <div class="fs-control"><label>CFOP</label><button type="button" class="btn secondary xf-btn" data-campo="cfop">Todos ▾</button></div>
+        </div>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#2E5266;">CD</span>
+          <div class="fs-control"><label>Conta débito</label><button type="button" class="btn secondary xf-btn" data-campo="contaDebito">Todos ▾</button></div>
+        </div>
+      </div>
+
+      <div class="fs-section">
+        <p class="fs-section-title">ORDENAÇÃO</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#3A8FA3;">OR</span>
+          <div class="fs-control">
+            <label for="fOrdenar">Ordenar por</label>
+            <select id="fOrdenar">
+              <option value="emissao_desc">Emissão (mais recente)</option>
+              <option value="emissao_asc">Emissão (mais antiga)</option>
+              <option value="valor_desc">Valor (maior primeiro)</option>
+              <option value="valor_asc">Valor (menor primeiro)</option>
+              <option value="fornecedor_asc">Fornecedor (A-Z)</option>
+              <option value="fornecedor_desc">Fornecedor (Z-A)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="fs-actions">
+        <button class="btn secondary" id="btnMarcarFiltradas">Marcar filtradas como lançadas</button>
+        <button class="btn secondary" id="btnLimpar">Limpar filtros</button>
+      </div>
+    </aside>
+
+    <div class="content-main">
   <p class="hint" id="resumoAnalise" style="margin-bottom:8px;"></p>
 
   <details open style="margin-bottom:14px;">
@@ -294,6 +348,8 @@
   </details>
 
   <div id="tableContainer"></div>
+    </div>
+  </div>
 
   <div id="xfPanel" class="xf-panel">
     <input type="text" id="xfSearch" placeholder="Pesquisar">
@@ -402,78 +458,107 @@
     </div>
   </div>
 
-  <div class="filters">
-    <div class="field">
-      <label>Emitente</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="emitente">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label>Destinatário</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="destinatario">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label>Status</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="status">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label>Analisado</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="analisado">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label>Mês</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="mes">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label>Ano</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="ano">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label for="st_fNumero">Número do documento</label>
-      <input type="text" id="st_fNumero" placeholder="Buscar por número" style="max-width:150px;">
-    </div>
-    <div class="field">
-      <label>Código de Serviço</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="codigoServico">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label>Conta débito</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="contaDebito">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label>Impostos retidos</label>
-      <button type="button" class="btn secondary xf-btn" data-campo="impostosRetidos">Todos ▾</button>
-    </div>
-    <div class="field">
-      <label for="st_fValorDe">Valor de (R$)</label>
-      <input type="number" step="0.01" id="st_fValorDe" style="max-width:130px;">
-    </div>
-    <div class="field">
-      <label for="st_fValorAte">Até (R$)</label>
-      <input type="number" step="0.01" id="st_fValorAte" style="max-width:130px;">
-    </div>
-    <div class="field">
-      <label for="st_fDataDe">Emissão de</label>
-      <input type="date" id="st_fDataDe">
-    </div>
-    <div class="field">
-      <label for="st_fDataAte">Até</label>
-      <input type="date" id="st_fDataAte">
-    </div>
-    <div class="field">
-      <label for="st_fOrdenar">Ordenar por</label>
-      <select id="st_fOrdenar">
-        <option value="emissao_desc">Emissão (mais recente)</option>
-        <option value="emissao_asc">Emissão (mais antiga)</option>
-        <option value="valor_desc">Valor (maior primeiro)</option>
-        <option value="valor_asc">Valor (menor primeiro)</option>
-        <option value="fornecedor_asc">Fornecedor (A-Z)</option>
-        <option value="fornecedor_desc">Fornecedor (Z-A)</option>
-      </select>
-    </div>
-    <button class="btn secondary" id="st_btnMarcarFiltradas">Marcar filtradas como lançadas</button>
-    <button class="btn secondary" id="st_btnLimpar">Limpar filtros</button>
-  </div>
+  <div class="content-layout">
+    <aside class="filter-sidebar">
+      <div class="fs-section">
+        <p class="fs-section-title">IDENTIFICAÇÃO</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#2E5266;">EM</span>
+          <div class="fs-control"><label>Emitente</label><button type="button" class="btn secondary xf-btn" data-campo="emitente">Todos ▾</button></div>
+        </div>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#3A8FA3;">DE</span>
+          <div class="fs-control"><label>Destinatário</label><button type="button" class="btn secondary xf-btn" data-campo="destinatario">Todos ▾</button></div>
+        </div>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#4B7A3E;">NU</span>
+          <div class="fs-control"><label for="st_fNumero">Número do documento</label><input type="text" id="st_fNumero" placeholder="Buscar por número"></div>
+        </div>
+      </div>
 
+      <div class="fs-section">
+        <p class="fs-section-title">PERÍODO</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#B5762A;">ME</span>
+          <div class="fs-control"><label>Mês</label><button type="button" class="btn secondary xf-btn" data-campo="mes">Todos ▾</button></div>
+        </div>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#9A6A4B;">AO</span>
+          <div class="fs-control"><label>Ano</label><button type="button" class="btn secondary xf-btn" data-campo="ano">Todos ▾</button></div>
+        </div>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#8E6BAF;">DT</span>
+          <div class="fs-control">
+            <label>Emissão de / até</label>
+            <div class="fs-range"><input type="date" id="st_fDataDe"><input type="date" id="st_fDataAte"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fs-section">
+        <p class="fs-section-title">STATUS</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#A23E3E;">ST</span>
+          <div class="fs-control"><label>Status</label><button type="button" class="btn secondary xf-btn" data-campo="status">Todos ▾</button></div>
+        </div>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#C1502E;">AN</span>
+          <div class="fs-control"><label>Analisado</label><button type="button" class="btn secondary xf-btn" data-campo="analisado">Todos ▾</button></div>
+        </div>
+      </div>
+
+      <div class="fs-section">
+        <p class="fs-section-title">VALORES</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#2F6E5E;">VL</span>
+          <div class="fs-control">
+            <label>Valor de / até (R$)</label>
+            <div class="fs-range"><input type="number" step="0.01" id="st_fValorDe"><input type="number" step="0.01" id="st_fValorAte"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fs-section">
+        <p class="fs-section-title">CONTÁBIL</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#6B7280;">CS</span>
+          <div class="fs-control"><label>Código de Serviço</label><button type="button" class="btn secondary xf-btn" data-campo="codigoServico">Todos ▾</button></div>
+        </div>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#2E5266;">CD</span>
+          <div class="fs-control"><label>Conta débito</label><button type="button" class="btn secondary xf-btn" data-campo="contaDebito">Todos ▾</button></div>
+        </div>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#9A6A4B;">IR</span>
+          <div class="fs-control"><label>Impostos retidos</label><button type="button" class="btn secondary xf-btn" data-campo="impostosRetidos">Todos ▾</button></div>
+        </div>
+      </div>
+
+      <div class="fs-section">
+        <p class="fs-section-title">ORDENAÇÃO</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#3A8FA3;">OR</span>
+          <div class="fs-control">
+            <label for="st_fOrdenar">Ordenar por</label>
+            <select id="st_fOrdenar">
+              <option value="emissao_desc">Emissão (mais recente)</option>
+              <option value="emissao_asc">Emissão (mais antiga)</option>
+              <option value="valor_desc">Valor (maior primeiro)</option>
+              <option value="valor_asc">Valor (menor primeiro)</option>
+              <option value="fornecedor_asc">Fornecedor (A-Z)</option>
+              <option value="fornecedor_desc">Fornecedor (Z-A)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="fs-actions">
+        <button class="btn secondary" id="st_btnMarcarFiltradas">Marcar filtradas como lançadas</button>
+        <button class="btn secondary" id="st_btnLimpar">Limpar filtros</button>
+      </div>
+    </aside>
+
+    <div class="content-main">
   <p class="hint" id="st_resumoAnalise" style="margin-bottom:8px;"></p>
 
   <details open style="margin-bottom:14px;">
@@ -484,6 +569,8 @@
   </details>
 
   <div id="st_tableContainer"></div>
+    </div>
+  </div>
 
   <div id="st_xfPanel" class="xf-panel">
     <input type="text" id="st_xfSearch" placeholder="Pesquisar">
@@ -590,6 +677,79 @@
     </div>
   </div>
 
+  <div class="content-layout">
+    <aside class="filter-sidebar">
+      <div class="fs-section">
+        <p class="fs-section-title">BUSCA</p>
+        <div class="fs-row" id="fsRow-fBusca">
+          <span class="fs-icon" style="background:#2E5266;">PR</span>
+          <div class="fs-control"><label for="fBusca">Prestador</label><input type="text" id="fBusca" placeholder="Buscar por nome"></div>
+        </div>
+      </div>
+
+      <div class="fs-section">
+        <p class="fs-section-title">CLASSIFICAÇÃO</p>
+        <div class="fs-row" id="fsRow-fEmpreendimento">
+          <span class="fs-icon" style="background:#3A8FA3;">EP</span>
+          <div class="fs-control"><label for="fEmpreendimento">Empreendimento</label><select id="fEmpreendimento"><option value="">Todos</option></select></div>
+        </div>
+        <div class="fs-row" id="fsRow-fStatus">
+          <span class="fs-icon" style="background:#A23E3E;">SI</span>
+          <div class="fs-control">
+            <label for="fStatus">Situação</label>
+            <select id="fStatus">
+              <option value="">Todas</option>
+              <option value="nao_cancelada">Diferente de cancelada</option>
+              <option value="atrasada">Atrasadas</option>
+              <option value="critico">Críticas (≤3 dias)</option>
+              <option value="soon">Vence em breve (4-7 dias)</option>
+              <option value="pendente">Pendentes (todas)</option>
+              <option value="emitida">Emitidas</option>
+              <option value="cancelada">Canceladas</option>
+            </select>
+          </div>
+        </div>
+        <div class="fs-row" id="fsRow-fRetencao">
+          <span class="fs-icon" style="background:#B5762A;">RI</span>
+          <div class="fs-control">
+            <label for="fRetencao">Retenção ISS</label>
+            <select id="fRetencao">
+              <option value="">Todas</option>
+              <option value="sim">Retido</option>
+              <option value="nao">Não retido</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="fs-section">
+        <p class="fs-section-title">PERÍODO</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#8E6BAF;">PP</span>
+          <div class="fs-control">
+            <label for="fDataCampo">Período por</label>
+            <select id="fDataCampo">
+              <option value="dataServico">Data de prestação</option>
+              <option value="dataEmissao">Data de emissão</option>
+              <option value="prazo">Prazo NFTS</option>
+            </select>
+          </div>
+        </div>
+        <div class="fs-row" id="fsRow-nfts_fDataDe">
+          <span class="fs-icon" style="background:#4B7A3E;">DT</span>
+          <div class="fs-control">
+            <label>De / até</label>
+            <div class="fs-range"><input type="date" id="nfts_fDataDe"><input type="date" id="nfts_fDataAte"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fs-actions">
+        <button class="btn secondary" id="nfts_btnLimpar">Limpar filtros</button>
+      </div>
+    </aside>
+
+    <div class="content-main">
   <div class="filters" style="margin-bottom:14px;">
     <div class="field" style="flex:1;">
       <label for="responsavelEmail">E-mail do responsável pela emissão</label>
@@ -608,55 +768,6 @@
     <button class="btn secondary" id="btnPrepararEmail">Preparar e-mail</button>
   </div>
 
-  <div class="filters">
-    <div class="field">
-      <label for="fBusca">Prestador</label>
-      <input type="text" id="fBusca" placeholder="Buscar por nome">
-    </div>
-    <div class="field">
-      <label for="fEmpreendimento">Empreendimento</label>
-      <select id="fEmpreendimento"><option value="">Todos</option></select>
-    </div>
-    <div class="field">
-      <label for="fStatus">Situação</label>
-      <select id="fStatus">
-        <option value="">Todas</option>
-        <option value="nao_cancelada">Diferente de cancelada</option>
-        <option value="atrasada">Atrasadas</option>
-        <option value="critico">Críticas (≤3 dias)</option>
-        <option value="soon">Vence em breve (4-7 dias)</option>
-        <option value="pendente">Pendentes (todas)</option>
-        <option value="emitida">Emitidas</option>
-        <option value="cancelada">Canceladas</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="fRetencao">Retenção ISS</label>
-      <select id="fRetencao">
-        <option value="">Todas</option>
-        <option value="sim">Retido</option>
-        <option value="nao">Não retido</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="fDataCampo">Período por</label>
-      <select id="fDataCampo">
-        <option value="dataServico">Data de prestação</option>
-        <option value="dataEmissao">Data de emissão</option>
-        <option value="prazo">Prazo NFTS</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="nfts_fDataDe">De</label>
-      <input type="date" id="nfts_fDataDe">
-    </div>
-    <div class="field">
-      <label for="nfts_fDataAte">Até</label>
-      <input type="date" id="nfts_fDataAte">
-    </div>
-    <button class="btn secondary" id="nfts_btnLimpar">Limpar filtros</button>
-  </div>
-
   <div id="nfts_tableContainer"></div>
 
   <p class="footnote">
@@ -665,6 +776,8 @@
     Quando não há retenção, o prazo legal é dia 30, sem folga aplicada.
     Os dados ficam salvos apenas neste dispositivo/conta.
   </p>
+    </div>
+  </div>
   </div>
 
   <div id="nfts_viewDashboard" style="display:none;">
@@ -1675,9 +1788,9 @@ function fmtMoney(v){
 }
 function currentMonthKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
 
-const filtroSelecionados = { emitente: new Set(), destinatario: new Set(), status: new Set(), mes: new Set(), ano: new Set(), cfop: new Set(), analisado: new Set(), contaDebito: new Set() };
+const filtroSelecionados = { emitente: new Set(), destinatario: new Set(), status: new Set(), mes: new Set(), ano: new Set(), cfop: new Set(), analisado: new Set(), contaDebito: new Set(), numero: new Set(), valor: new Set(), dataEmissao: new Set() };
 
-const CAMPO_LABELS = { emitente: 'Emitente', destinatario: 'Destinatário', status: 'Status', mes: 'Mês', ano: 'Ano', cfop: 'CFOP', analisado: 'Analisado', contaDebito: 'Conta débito' };
+const CAMPO_LABELS = { emitente: 'Emitente', destinatario: 'Destinatário', status: 'Status', mes: 'Mês', ano: 'Ano', cfop: 'CFOP', analisado: 'Analisado', contaDebito: 'Conta débito', numero: 'Número', valor: 'Valor', dataEmissao: 'Emissão' };
 const MES_LABELS = { '01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro' };
 const STATUS_LABELS = { pendente:'Pendente', lancada:'Lançada', contabilizada:'Contabilizado', nao_contabilizada:'Lançada mas não contabilizada' };
 const ANALISADO_LABELS = { sim:'Já analisado', nao:'Ainda não analisado' };
@@ -1691,6 +1804,9 @@ function campoOpcoes(campo){
   if(campo === 'cfop') return [...new Set(entries.map(e => (e.cfop||'').toString().trim()).filter(Boolean))].sort().map(v=>({value:v, label: descricaoCfop(v) ? `${v} - ${descricaoCfop(v)}` : v}));
   if(campo === 'analisado') return Object.keys(ANALISADO_LABELS).map(v=>({value:v, label:ANALISADO_LABELS[v]}));
   if(campo === 'contaDebito') return [...new Set(entries.map(e => e.contaContabilNome || e.contaContabil || '').map(v=>v.trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR')).map(v=>({value:v, label:v}));
+  if(campo === 'numero') return [...new Set(entries.map(e => (e.numero||'').toString().trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true})).map(v=>({value:v, label:v}));
+  if(campo === 'valor') return [...new Set(entries.map(e => fmtMoney(e.valor)))].sort().map(v=>({value:v, label:v}));
+  if(campo === 'dataEmissao') return [...new Set(entries.map(e => e.dataEmissao).filter(Boolean))].sort().map(v=>({value:v, label:fmtDate(v)}));
   return [];
 }
 
@@ -1698,6 +1814,11 @@ function atualizarBotoesFiltro(){
   document.getElementById('moduloNotasEntrada').querySelectorAll('.xf-btn').forEach(btn=>{
     const campo = btn.dataset.campo;
     const sel = filtroSelecionados[campo];
+    if(btn.dataset.compact){
+      btn.textContent = sel.size === 0 ? '▾' : `▾ (${sel.size})`;
+      btn.style.color = sel.size === 0 ? '' : 'var(--accent)';
+      return;
+    }
     btn.textContent = (sel.size === 0 ? 'Todos' : `${CAMPO_LABELS[campo]} (${sel.size})`) + ' ▾';
   });
 }
@@ -1857,6 +1978,9 @@ function getFiltered(){
   const cfop = filtroSelecionados.cfop;
   const analisado = filtroSelecionados.analisado;
   const contaDebito = filtroSelecionados.contaDebito;
+  const numeroChecklist = filtroSelecionados.numero;
+  const valorChecklist = filtroSelecionados.valor;
+  const dataEmissaoChecklist = filtroSelecionados.dataEmissao;
   const numero = document.getElementById('fNumero').value.trim();
   const valorDe = document.getElementById('fValorDe').value;
   const valorAte = document.getElementById('fValorAte').value;
@@ -1881,6 +2005,9 @@ function getFiltered(){
     if(cfop.size && !cfop.has((e.cfop || '').toString().trim())) return false;
     if(analisado.size && !analisado.has(e.analisado ? 'sim' : 'nao')) return false;
     if(contaDebito.size && !contaDebito.has((e.contaContabilNome || e.contaContabil || '').trim())) return false;
+    if(numeroChecklist.size && !numeroChecklist.has((e.numero||'').toString().trim())) return false;
+    if(valorChecklist.size && !valorChecklist.has(fmtMoney(e.valor))) return false;
+    if(dataEmissaoChecklist.size && !dataEmissaoChecklist.has(e.dataEmissao)) return false;
     if(valorDe && Number(e.valor) < Number(valorDe)) return false;
     if(valorAte && Number(e.valor) > Number(valorAte)) return false;
     if(de && (!e.dataEmissao || e.dataEmissao < de)) return false;
@@ -1972,7 +2099,7 @@ function renderTable(list){
   </tr>`).join('');
 
   container.innerHTML = `<table>
-    <thead><tr><th style="text-align:center;"><input type="checkbox" id="chkAnalisadoTodos" title="Marcar/desmarcar todos os exibidos como analisados" style="width:16px;height:16px;cursor:pointer;"></th><th>Emitente</th><th>Número</th><th>Emissão</th><th>Valor</th><th>CFOP</th><th>Destinatário</th><th>Status</th><th>Conta débito</th><th></th></tr></thead>
+    <thead><tr><th style="text-align:center;"><input type="checkbox" id="chkAnalisadoTodos" title="Marcar/desmarcar todos os exibidos como analisados" style="width:16px;height:16px;cursor:pointer;"></th><th>Emitente <button type="button" class="xf-btn" data-compact="1" data-campo="emitente" style="all:unset;cursor:pointer;">▾</button></th><th>Número <button type="button" class="xf-btn" data-compact="1" data-campo="numero" style="all:unset;cursor:pointer;">▾</button></th><th>Emissão <button type="button" class="xf-btn" data-compact="1" data-campo="dataEmissao" style="all:unset;cursor:pointer;">▾</button></th><th>Valor <button type="button" class="xf-btn" data-compact="1" data-campo="valor" style="all:unset;cursor:pointer;">▾</button></th><th>CFOP <button type="button" class="xf-btn" data-compact="1" data-campo="cfop" style="all:unset;cursor:pointer;">▾</button></th><th>Destinatário <button type="button" class="xf-btn" data-compact="1" data-campo="destinatario" style="all:unset;cursor:pointer;">▾</button></th><th>Status <button type="button" class="xf-btn" data-compact="1" data-campo="status" style="all:unset;cursor:pointer;">▾</button></th><th>Conta débito <button type="button" class="xf-btn" data-compact="1" data-campo="contaDebito" style="all:unset;cursor:pointer;">▾</button></th><th></th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 
@@ -2007,6 +2134,14 @@ function renderTable(list){
   container.querySelectorAll('[data-action="delete"]').forEach(btn=>{
     btn.addEventListener('click', ()=>deleteEntry(btn.dataset.id));
   });
+  container.querySelectorAll('.xf-btn').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      if(xfCampoAtual === btn.dataset.campo){ fecharPainelFiltro(); return; }
+      abrirPainelFiltro(btn.dataset.campo, btn);
+    });
+  });
+  atualizarBotoesFiltro();
 }
 
 function render(){
@@ -3615,18 +3750,31 @@ function renderTable(list){
   container.innerHTML = `<table>
     <thead>
       <tr>
-        <th>Prestador</th>
-        <th>Empreendimento</th>
-        <th>Prestação</th>
-        <th>Retenção ISS</th>
+        <th>Prestador <button type="button" class="th-jump-btn" data-jump="fBusca" title="Filtrar por prestador">▾</button></th>
+        <th>Empreendimento <button type="button" class="th-jump-btn" data-jump="fEmpreendimento" title="Filtrar por empreendimento">▾</button></th>
+        <th>Prestação <button type="button" class="th-jump-btn" data-jump="nfts_fDataDe" title="Filtrar por período">▾</button></th>
+        <th>Retenção ISS <button type="button" class="th-jump-btn" data-jump="fRetencao" title="Filtrar por retenção">▾</button></th>
         <th>Valor</th>
         <th>Prazo NFTS</th>
-        <th>Situação</th>
+        <th>Situação <button type="button" class="th-jump-btn" data-jump="fStatus" title="Filtrar por situação">▾</button></th>
         <th></th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
   </table>`;
+
+  container.querySelectorAll('.th-jump-btn').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const row = document.getElementById('fsRow-' + btn.dataset.jump);
+      if(!row) return;
+      row.scrollIntoView({behavior:'smooth', block:'center'});
+      row.classList.add('fs-highlight');
+      const campo = document.getElementById(btn.dataset.jump);
+      if(campo) campo.focus();
+      setTimeout(()=> row.classList.remove('fs-highlight'), 1600);
+    });
+  });
 
   container.querySelectorAll('[data-action="edit"]').forEach(btn=>{
     btn.addEventListener('click', ()=>openModal(btn.dataset.id));
