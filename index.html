@@ -340,6 +340,7 @@
 
       <div class="fs-actions">
         <button class="btn secondary" id="btnMarcarFiltradas">Marcar filtradas como lançadas</button>
+        <button class="btn secondary" id="btnExportarExcel">Exportar filtradas (Excel)</button>
         <button class="btn secondary" id="btnLimpar">Limpar filtros</button>
       </div>
     </aside>
@@ -757,6 +758,7 @@
       </div>
 
       <div class="fs-actions">
+        <button class="btn secondary" id="nfts_btnExportarExcel">Exportar filtradas (Excel)</button>
         <button class="btn secondary" id="nfts_btnLimpar">Limpar filtros</button>
       </div>
     </aside>
@@ -2092,7 +2094,7 @@ function renderTable(list){
       <div class="emitente-name">${escapeHtml(e.emitente)}</div>
       <div class="sub">${escapeHtml(e.cnpjEmitente || '')}</div>
     </td>
-    <td class="num-col">${escapeHtml(e.numero || '—')}</td>
+    <td class="num-col">${escapeHtml(e.numero || '—')}${e.chave ? `<div class="sub" style="font-size:10.5px;">${escapeHtml(e.chave)}</div>` : ''}</td>
     <td class="num-col">${fmtDate(e.dataEmissao)}</td>
     <td class="num-col">${fmtMoney(e.valor)}</td>
     <td>${escapeHtml(e.cfop || '—')}${descricaoCfop(e.cfop) ? `<div class="sub">${escapeHtml(descricaoCfop(e.cfop))}</div>` : ''}</td>
@@ -2399,6 +2401,27 @@ document.getElementById('btnMarcarFiltradas').addEventListener('click', ()=>{
   entries.forEach(e=>{ if(ids.has(e.id)){ e.lancada = true; e.dataLancamento = hoje; } });
   saveEntries();
   render();
+});
+document.getElementById('btnExportarExcel').addEventListener('click', ()=>{
+  const filtrados = getFiltered();
+  if(filtrados.length === 0){ alert('Nada no filtro atual pra exportar.'); return; }
+  const linhas = filtrados.map(e=>({
+    'Emitente': e.emitente || '',
+    'CNPJ Emitente': e.cnpjEmitente || '',
+    'Chave de acesso': e.chave || '',
+    'Número': e.numero || '',
+    'Emissão': e.dataEmissao ? fmtDate(e.dataEmissao) : '',
+    'Valor': Number(e.valor) || 0,
+    'CFOP': e.cfop || '',
+    'Destinatário': e.destinatario || '',
+    'Status': e.lancada ? (e.contabilizada ? 'Contabilizado' : 'Lançada mas não contabilizada') : 'Pendente',
+    'Conta débito': e.contaContabilNome || e.contaContabil || ''
+  }));
+  const ws = XLSX.utils.json_to_sheet(linhas);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Notas de Entrada');
+  const hoje = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `notas-entrada-filtrado-${hoje}.xlsx`);
 });
 
 document.getElementById('btnRemoverDuplicados').addEventListener('click', ()=>{
@@ -3938,6 +3961,28 @@ document.getElementById('nfts_btnLimpar').addEventListener('click', ()=>{
   document.getElementById('nfts_fDataDe').value='';
   document.getElementById('nfts_fDataAte').value='';
   render();
+});
+document.getElementById('nfts_btnExportarExcel').addEventListener('click', ()=>{
+  const filtrados = getFiltered();
+  if(filtrados.length === 0){ alert('Nada no filtro atual pra exportar.'); return; }
+  const linhas = filtrados.map(e=>{
+    const s = getSituacao(e);
+    return {
+      'Prestador': e.prestador || '',
+      'Empreendimento': e.empreendimento || '',
+      'Data de prestação': e.dataServico ? fmtDate(e.dataServico) : '',
+      'Data de emissão': e.dataEmissao ? fmtDate(e.dataEmissao) : '',
+      'Retenção ISS': e.retencao === 'sim' ? 'Retido' : 'Não retido',
+      'Valor': Number(e.valor) || 0,
+      'Prazo NFTS': fmtDate(s.prazo.toISOString().slice(0,10)),
+      'Situação': s.label
+    };
+  });
+  const ws = XLSX.utils.json_to_sheet(linhas);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'NFTS');
+  const hoje = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `nfts-filtrado-${hoje}.xlsx`);
 });
 document.getElementById('fBusca').addEventListener('input', render);
 document.getElementById('fEmpreendimento').addEventListener('change', render);
