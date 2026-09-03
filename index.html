@@ -94,7 +94,7 @@
   .tab-btn:hover{color:var(--ink);}
   .tab-btn.active{color:var(--ink);border-bottom-color:var(--accent);}
 
-  .modulos-nav{display:flex;gap:8px;margin-bottom:18px;}
+  .modulos-nav{display:flex;gap:8px;margin-bottom:18px;position:sticky;top:0;z-index:41;background:var(--paper);padding:14px 36px 0;}
   .modulo-btn{font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;padding:10px 22px;border:none;border-radius:var(--radius-sm) var(--radius-sm) 0 0;background:var(--panel);color:var(--muted);cursor:pointer;border:1px solid var(--line);border-bottom:none;}
   .modulo-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
   .modulo-btn:not(.active):hover{background:var(--hover);}
@@ -154,7 +154,8 @@
 
   .content-layout{display:flex;gap:22px;align-items:flex-start;}
   .content-main{flex:1;min-width:0;}
-  .filter-sidebar{width:248px;flex-shrink:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px 14px;position:sticky;top:16px;}
+  .sticky-head{position:sticky;top:var(--modnav-h, 56px);z-index:40;background:var(--paper);}
+  .filter-sidebar{width:248px;flex-shrink:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px 14px;position:sticky;top:calc(var(--modnav-h, 56px) + var(--stickyhead-h, 150px) + 14px);max-height:calc(100vh - var(--modnav-h, 56px) - var(--stickyhead-h, 150px) - 30px);overflow-y:auto;}
   .fs-section{margin-bottom:16px;}
   .fs-section:last-of-type{margin-bottom:12px;}
   .fs-section-title{font-size:11px;font-weight:600;letter-spacing:.03em;color:var(--muted);margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);}
@@ -200,6 +201,7 @@
   <div id="moduloNotasEntrada">
 <div class="wrap">
 
+  <div class="sticky-head">
   <div class="masthead">
     <div>
       <h1>Controle de Notas de Entrada</h1>
@@ -223,6 +225,7 @@
   <div class="tabs-nav">
     <button type="button" class="tab-btn active" data-ne-view="lancamentos">Lançamentos</button>
     <button type="button" class="tab-btn" data-ne-view="dashboard">Dashboard</button>
+  </div>
   </div>
 
   <div id="viewLancamentos">
@@ -415,6 +418,7 @@
   <div id="st_moduloNotasEntrada">
 <div class="wrap">
 
+  <div class="sticky-head">
   <div class="masthead">
     <div>
       <h1>Controle de Serviços Tomados</h1>
@@ -440,6 +444,7 @@
   <div class="tabs-nav">
     <button type="button" class="tab-btn active" data-st-view="lancamentos">Lançamentos</button>
     <button type="button" class="tab-btn" data-st-view="dashboard">Dashboard</button>
+  </div>
   </div>
 
   <div id="st_viewLancamentos">
@@ -637,6 +642,7 @@
 
 <div class="wrap">
 
+  <div class="sticky-head">
   <div class="masthead">
     <div>
       <h1>Controle de NFTS</h1>
@@ -655,6 +661,7 @@
   <div class="tabs-nav">
     <button type="button" class="tab-btn active" data-nfts-view="lancamentos">Lançamentos</button>
     <button type="button" class="tab-btn" data-nfts-view="dashboard">Dashboard</button>
+  </div>
   </div>
 
   <div id="nfts_viewLancamentos">
@@ -3471,6 +3478,15 @@ loadImportedKeys();
 migrarDadosAntigosSeNecessario().then(() => migrarAnexosAntigosSeNecessario());
 
 // ---- Troca entre módulos (Notas de Entrada / Serviços Tomados / NFTS) ----
+function medirAlturasSticky(){
+  const modNav = document.querySelector('.modulos-nav');
+  if(modNav) document.documentElement.style.setProperty('--modnav-h', modNav.offsetHeight + 'px');
+  const modAtivo = ['moduloNotasEntrada','moduloServicosTomados','moduloNfts']
+    .map(id => document.getElementById(id))
+    .find(el => el && el.style.display !== 'none');
+  const stickyHead = modAtivo ? modAtivo.querySelector('.sticky-head') : null;
+  if(stickyHead) document.documentElement.style.setProperty('--stickyhead-h', stickyHead.offsetHeight + 'px');
+}
 document.querySelectorAll('.modulo-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.modulo-btn').forEach(b => b.classList.toggle('active', b === btn));
@@ -3478,8 +3494,13 @@ document.querySelectorAll('.modulo-btn').forEach(btn=>{
     document.getElementById('moduloNotasEntrada').style.display = modulo === 'notasEntrada' ? 'block' : 'none';
     document.getElementById('moduloServicosTomados').style.display = modulo === 'servicosTomados' ? 'block' : 'none';
     document.getElementById('moduloNfts').style.display = modulo === 'nfts' ? 'block' : 'none';
+    setTimeout(medirAlturasSticky, 30);
   });
 });
+window.addEventListener('resize', medirAlturasSticky);
+window.addEventListener('load', medirAlturasSticky);
+setTimeout(medirAlturasSticky, 200);
+setTimeout(medirAlturasSticky, 800);
 </script>
 
 <script>
