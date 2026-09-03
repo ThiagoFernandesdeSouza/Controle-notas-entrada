@@ -5452,9 +5452,10 @@ async function saveEntries(){
     }catch(e){
       console.error('Falha ao salvar lote', inicio, e);
       alert(`Só consegui salvar ${salvos} de ${entries.length} lançamento(s) — o lote seguinte falhou (${e.message || e}). Os que faltaram continuam só na tela; recarregue com cuidado e me avise pra eu investigar antes de reimportar.`);
-      return;
+      return { sucesso: false, salvos, total: entries.length };
     }
   }
+  return { sucesso: true, salvos, total: entries.length };
 }
 
 async function excluirNotaFirestore(id){
@@ -6534,10 +6535,11 @@ function buildPreview(){
   document.getElementById('st_btnImportConfirmar').style.display = 'inline-block';
 }
 
-function confirmImport(){
+async function confirmImport(){
   const validRows = previewRows.filter(r => r.dataEmissao);
   const skippedNoDate = previewRows.length - validRows.length;
 
+  const novasChaves = [];
   validRows.forEach(r=>{
     entries.push({
       id: uid(),
@@ -6564,14 +6566,21 @@ function confirmImport(){
       temAnexo: false,
       anexoNome: ''
     });
-    importedKeys.add(r.chave);
+    novasChaves.push(r.chave);
   });
 
-  saveEntries();
-  saveImportedKeys();
   closeImportModal();
   render();
-  if(skippedNoDate > 0){
+
+  const resultado = await saveEntries();
+  const salvosDestaImportacao = Math.max(0, resultado.salvos - (resultado.total - novasChaves.length));
+  novasChaves.slice(0, salvosDestaImportacao).forEach(chave => importedKeys.add(chave));
+  await saveImportedKeys();
+  render();
+
+  if(!resultado.sucesso){
+    alert(`Atenção: só ${salvosDestaImportacao} de ${novasChaves.length} nota(s) novas foram confirmadas salvas nesta importação. As demais NÃO foram marcadas como importadas — pode tentar reimportar a mesma planilha depois que o problema for resolvido, sem risco de duplicar.`);
+  } else if(skippedNoDate > 0){
     alert(`${validRows.length} lançamentos importados. ${skippedNoDate} ficaram de fora por falta de data — importe manualmente.`);
   }
 }
