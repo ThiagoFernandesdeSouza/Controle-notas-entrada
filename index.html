@@ -3393,13 +3393,17 @@ function renderDashboard(){
   const lancadas = naoCanceladas.filter(e => e.lancada);
   const valorLancado = lancadas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
   const valorTotal = naoCanceladas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
-  const contabilizadas = naoCanceladas.filter(e => e.contabilizada).length;
+  const contabilizadasList = naoCanceladas.filter(e => e.contabilizada);
+  const valorContabilizado = contabilizadasList.reduce((s,e)=> s + (Number(e.valor)||0), 0);
+  const faltaContabilizar = lancadas.filter(e => !e.contabilizada);
+  const valorFaltaContabilizar = faltaContabilizar.reduce((s,e)=> s + (Number(e.valor)||0), 0);
 
   document.getElementById('dashKpis').innerHTML = `
     <div class="stat warn"><span class="num">${fmtMoney(valorPendente)}</span><span class="label">Valor pendente de lançamento (${pendentes.length} nota(s))</span></div>
     <div class="stat ok"><span class="num">${fmtMoney(valorLancado)}</span><span class="label">Valor já lançado (${lancadas.length} nota(s))</span></div>
     <div class="stat"><span class="num">${fmtMoney(valorTotal)}</span><span class="label">Valor total (${naoCanceladas.length} nota(s))</span></div>
-    <div class="stat"><span class="num">${contabilizadas}</span><span class="label">Notas já contabilizadas no razão</span></div>
+    <div class="stat ok"><span class="num">${fmtMoney(valorContabilizado)}</span><span class="label">Valor contabilizado no razão (${contabilizadasList.length} nota(s))</span></div>
+    <div class="stat warn"><span class="num">${fmtMoney(valorFaltaContabilizar)}</span><span class="label">Falta contabilizar no razão (${faltaContabilizar.length} nota(s))</span></div>
   `;
 
   if(typeof Chart === 'undefined'){
@@ -5239,7 +5243,9 @@ function renderNftsDashboard(){
   const valorEmitido = emitidas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
   const valorTotal = naoCanceladas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
   const atrasadas = pendentes.filter(e => getSituacao(e).key === 'atrasada').length;
-  const canceladasKpi = entries.filter(e => e.status === 'cancelada').length;
+  const canceladasEntries = entries.filter(e => e.status === 'cancelada');
+  const canceladasKpi = canceladasEntries.length;
+  const valorCanceladasNfts = canceladasEntries.reduce((s,e)=> s + (Number(e.valor)||0), 0);
   const comRetidoInformado = naoCanceladas.filter(e => e.retencao === 'sim' && Number(e.aliquotaIss) > 0);
   const valorRetidoTotal = comRetidoInformado.reduce((s,e)=> s + (Number(e.valor)||0) * (Number(e.aliquotaIss)||0) / 100, 0);
   const notasComRetencaoSemAliquota = naoCanceladas.filter(e => e.retencao === 'sim' && !(Number(e.aliquotaIss) > 0)).length;
@@ -5249,7 +5255,7 @@ function renderNftsDashboard(){
     <div class="stat ok"><span class="num">${fmtMoney(valorEmitido)}</span><span class="label">Valor já emitido (${emitidas.length} nota(s))</span></div>
     <div class="stat"><span class="num">${fmtMoney(valorTotal)}</span><span class="label">Valor total (${naoCanceladas.length} nota(s))</span></div>
     <div class="stat critico"><span class="num">${atrasadas}</span><span class="label">Notas atrasadas</span></div>
-    <div class="stat"><span class="num">${canceladasKpi}</span><span class="label">Notas canceladas</span></div>
+    <div class="stat"><span class="num">${fmtMoney(valorCanceladasNfts)}</span><span class="label">Valor cancelado (${canceladasKpi} nota(s))</span></div>
     <div class="stat ok"><span class="num">${fmtMoney(valorRetidoTotal)}</span><span class="label">Valor retido de ISS estimado (${comRetidoInformado.length} nota(s) com alíquota informada${notasComRetencaoSemAliquota ? `, ${notasComRetencaoSemAliquota} sem alíquota` : ''})</span></div>
   `;
 
@@ -7277,14 +7283,18 @@ function renderDashboard(){
   const lancadas = naoCanceladas.filter(e => e.lancada);
   const valorLancado = lancadas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
   const valorTotal = naoCanceladas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
-  const contabilizadas = naoCanceladas.filter(e => e.contabilizada).length;
+  const contabilizadasList = naoCanceladas.filter(e => e.contabilizada);
+  const valorContabilizado = contabilizadasList.reduce((s,e)=> s + (Number(e.valor)||0), 0);
+  const faltaContabilizar = lancadas.filter(e => !e.contabilizada);
+  const valorFaltaContabilizar = faltaContabilizar.reduce((s,e)=> s + (Number(e.valor)||0), 0);
   const valorCanceladas = canceladas.reduce((s,e)=> s + (Number(e.valor)||0), 0);
 
   document.getElementById('st_dashKpis').innerHTML = `
     <div class="stat warn"><span class="num">${fmtMoney(valorPendente)}</span><span class="label">Valor pendente de lançamento (${pendentes.length} nota(s))</span></div>
     <div class="stat ok"><span class="num">${fmtMoney(valorLancado)}</span><span class="label">Valor já lançado (${lancadas.length} nota(s))</span></div>
     <div class="stat"><span class="num">${fmtMoney(valorTotal)}</span><span class="label">Valor total (${naoCanceladas.length} nota(s), sem contar canceladas)</span></div>
-    <div class="stat"><span class="num">${contabilizadas}</span><span class="label">Notas já contabilizadas no razão</span></div>
+    <div class="stat ok"><span class="num">${fmtMoney(valorContabilizado)}</span><span class="label">Valor contabilizado no razão (${contabilizadasList.length} nota(s))</span></div>
+    <div class="stat warn"><span class="num">${fmtMoney(valorFaltaContabilizar)}</span><span class="label">Falta contabilizar no razão (${faltaContabilizar.length} nota(s))</span></div>
     <div class="stat"><span class="num">${fmtMoney(valorCanceladas)}</span><span class="label">Valor cancelado (${canceladas.length} nota(s))</span></div>
   `;
 
