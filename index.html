@@ -1729,10 +1729,12 @@ async function loadEntries(){
 
 async function saveEntries(){
   await firebaseProntoPromise;
+  const lista = entries.slice(); // cópia fixa: evita que o listener em tempo real (onSnapshot),
+                                  // ao reagir a cada lote gravado, corte o loop pela metade
   try{
-    for(let inicio = 0; inicio < entries.length; inicio += 450){
+    for(let inicio = 0; inicio < lista.length; inicio += 450){
       const batch = db.batch();
-      entries.slice(inicio, inicio + 450).forEach(e=>{
+      lista.slice(inicio, inicio + 450).forEach(e=>{
         batch.set(db.collection(NOTAS_COLLECTION).doc(e.id), e);
       });
       await batch.commit();
@@ -3539,10 +3541,12 @@ async function loadEntries(){
 
 async function saveEntries(){
   await firebaseProntoPromise;
+  const lista = entries.slice(); // cópia fixa: evita que o listener em tempo real (onSnapshot),
+                                  // ao reagir a cada lote gravado, corte o loop pela metade
   try{
-    for(let inicio = 0; inicio < entries.length; inicio += 450){
+    for(let inicio = 0; inicio < lista.length; inicio += 450){
       const batch = db.batch();
-      entries.slice(inicio, inicio + 450).forEach(e=>{ batch.set(db.collection(NFTS_COLLECTION).doc(e.id), e); });
+      lista.slice(inicio, inicio + 450).forEach(e=>{ batch.set(db.collection(NFTS_COLLECTION).doc(e.id), e); });
       await batch.commit();
     }
   }catch(e){
@@ -5439,9 +5443,11 @@ function sanitizarParaFirestore(obj){
 
 async function saveEntries(){
   await firebaseProntoPromise;
+  const lista = entries.slice(); // cópia fixa: evita que o listener em tempo real (onSnapshot),
+                                  // ao reagir a cada lote gravado, corte o loop pela metade
   let salvos = 0;
-  for(let inicio = 0; inicio < entries.length; inicio += 450){
-    const lote = entries.slice(inicio, inicio + 450);
+  for(let inicio = 0; inicio < lista.length; inicio += 450){
+    const lote = lista.slice(inicio, inicio + 450);
     try{
       const batch = db.batch();
       lote.forEach(e=>{
@@ -5451,11 +5457,11 @@ async function saveEntries(){
       salvos += lote.length;
     }catch(e){
       console.error('Falha ao salvar lote', inicio, e);
-      alert(`Só consegui salvar ${salvos} de ${entries.length} lançamento(s) — o lote seguinte falhou (${e.message || e}). Os que faltaram continuam só na tela; recarregue com cuidado e me avise pra eu investigar antes de reimportar.`);
-      return { sucesso: false, salvos, total: entries.length };
+      alert(`Só consegui salvar ${salvos} de ${lista.length} lançamento(s) — o lote seguinte falhou (${e.message || e}). Os que faltaram continuam só na tela; recarregue com cuidado e me avise pra eu investigar antes de reimportar.`);
+      return { sucesso: false, salvos, total: lista.length };
     }
   }
-  return { sucesso: true, salvos, total: entries.length };
+  return { sucesso: true, salvos, total: lista.length };
 }
 
 async function excluirNotaFirestore(id){
