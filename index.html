@@ -434,6 +434,8 @@
       <button class="btn secondary" id="st_btnRemoverDuplicados">Remover duplicados</button>
       <button class="btn secondary" id="st_btnConciliarRazao">Conciliar razão (OneFlow)</button>
       <button class="btn secondary" id="st_btnConsultarRegimes">Consultar regime dos fornecedores</button>
+      <button class="btn secondary" id="st_btnCorrigirIss">Corrigir ISS retido (planilha)</button>
+      <input type="file" id="st_corrigirIssInput" accept=".csv,.xlsx,.xls" style="display:none;">
       <button class="btn secondary" id="st_btnTabelaRetencao">Tabela de retenção por serviço</button>
       <button class="btn secondary" id="st_btnApagarConciliacao" style="border-color:var(--red);color:var(--red);">Apagar conciliação</button>
       <button class="btn secondary" id="st_btnApagarImportacaoQive" style="border-color:var(--red);color:var(--red);">Apagar importação Qive</button>
@@ -6725,6 +6727,80 @@ function handleFile(file){
     document.getElementById('st_err-file').textContent = 'Formato não reconhecido.';
   }
 }
+
+function lerPlanilhaGenerica(file){
+  return new Promise((resolve, reject)=>{
+    const name = file.name.toLowerCase();
+    const reader = new FileReader();
+    if(name.endsWith('.csv')){
+      reader.onload = (e)=>{
+        const rows = parseCsv(e.target.result);
+        if(rows.length < 2){ reject('Arquivo vazio.'); return; }
+        resolve({ headers: rows[0], rows: rows.slice(1) });
+      };
+      reader.readAsText(file, 'utf-8');
+    } else if(name.endsWith('.xlsx') || name.endsWith('.xls')){
+      reader.onload = (e)=>{
+        try{
+          const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array', cellDates:false});
+          const sheet = wb.Sheets[wb.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true});
+          const cleanRows = rows.filter(r => r.some(c => c !== undefined && c !== ''));
+          if(cleanRows.length < 2){ reject('Planilha vazia.'); return; }
+          resolve({ headers: cleanRows[0].map(h => (h||'').toString()), rows: cleanRows.slice(1) });
+        }catch(err){ reject('Não consegui ler esse arquivo.'); }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      reject('Formato não reconhecido (use .csv, .xlsx ou .xls).');
+    }
+  });
+}
+
+document.getElementById('st_btnCorrigirIss').addEventListener('click', ()=>{
+  document.getElementById('st_corrigirIssInput').click();
+});
+document.getElementById('st_corrigirIssInput').addEventListener('change', async (ev)=>{
+  const file = ev.target.files[0];
+  ev.target.value = '';
+  if(!file) return;
+  let dados;
+  try{ dados = await lerPlanilhaGenerica(file); }
+  catch(msg){ alert('Erro ao ler o arquivo: ' + msg); return; }
+
+  const { headers, rows } = dados;
+  const iChave = guessColumn(headers, [['codigo','verificacao'],['chave'],['numero']]);
+  const iIssRetido = guessColumn(headers, [['iss','retid'],['retencao','iss']]);
+  if(iChave < 0 || iIssRetido < 0){
+    alert(`Não consegui identificar as colunas necessárias nessa planilha.\nChave/Número: ${iChave>=0?'encontrada':'NÃO encontrada'}\nISS Retido: ${iIssRetido>=0?'encontrada':'NÃO encontrada'}\n\nConfirme se é a mesma planilha exportada da Qive.`);
+    return;
+  }
+  if(!confirm(`Vou usar a coluna "${headers[iChave]}" como chave e "${headers[iIssRetido]}" como indicador de ISS retido. ${rows.length} linha(s) na planilha. Confirma?`)) return;
+
+  const porChave = new Map();
+  entries.forEach(e => { if(e.chave) porChave.set(e.chave, e); });
+
+  let corrigidas = 0, naoEncontradas = 0, jaCorretas = 0;
+  rows.forEach(row=>{
+    const chave = (row[iChave] || '').toString().trim();
+    if(!chave) return;
+    const entry = porChave.get(chave);
+    if(!entry){ naoEncontradas++; return; }
+    const retido = normalizeStr((row[iIssRetido] || '').toString()).includes('sim');
+    if(!retido && Number(entry.retidoIss) > 0){
+      entry.retidoIss = 0;
+      corrigidas++;
+    } else {
+      jaCorretas++;
+    }
+  });
+
+  if(corrigidas > 0){
+    await saveEntries();
+    render();
+  }
+  alert(`Correção concluída: ${corrigidas} nota(s) tiveram o ISS retido zerado, ${jaCorretas} já estavam corretas, ${naoEncontradas} não foram encontradas na base (chave não bateu).`);
+});
 
 document.getElementById('st_btnImportar').addEventListener('click', openImportModal);
 document.getElementById('st_btnImportCancelar').addEventListener('click', closeImportModal);
