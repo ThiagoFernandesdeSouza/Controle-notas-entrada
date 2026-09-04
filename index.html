@@ -5818,7 +5818,7 @@ function getFiltered(){
     if(dest.size && !dest.has(e.destinatario)) return false;
     if(status.size){
       const passaAlgum = [...status].some(st=>{
-        if(st === 'pendente') return !e.lancada;
+        if(st === 'pendente') return !e.lancada && !e.cancelada;
         if(st === 'lancada') return e.lancada;
         if(st === 'contabilizada') return !!e.contabilizada;
         if(st === 'nao_contabilizada') return e.lancada && !e.contabilizada;
