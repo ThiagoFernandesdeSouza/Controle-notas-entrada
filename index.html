@@ -5604,9 +5604,9 @@ function fmtMoney(v){
 }
 function currentMonthKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
 
-const filtroSelecionados = { emitente: new Set(), destinatario: new Set(), status: new Set(), mes: new Set(), ano: new Set(), codigoServico: new Set(), analisado: new Set(), contaDebito: new Set(), impostosRetidos: new Set(), numero: new Set(), valor: new Set(), dataEmissao: new Set(), regimeTributario: new Set() };
+const filtroSelecionados = { emitente: new Set(), destinatario: new Set(), status: new Set(), mes: new Set(), ano: new Set(), codigoServico: new Set(), analisado: new Set(), contaDebito: new Set(), impostosRetidos: new Set(), numero: new Set(), valor: new Set(), dataEmissao: new Set(), regimeTributario: new Set(), pis: new Set(), cofins: new Set(), ir: new Set(), csll: new Set(), iss: new Set(), inss: new Set() };
 
-const CAMPO_LABELS = { emitente: 'Emitente', destinatario: 'Destinatário', status: 'Status', mes: 'Mês', ano: 'Ano', codigoServico: 'Código de Serviço', analisado: 'Analisado', contaDebito: 'Conta débito', impostosRetidos: 'Impostos retidos', numero: 'Número', valor: 'Valor', dataEmissao: 'Emissão', regimeTributario: 'Regime do fornecedor' };
+const CAMPO_LABELS = { emitente: 'Emitente', destinatario: 'Destinatário', status: 'Status', mes: 'Mês', ano: 'Ano', codigoServico: 'Código de Serviço', analisado: 'Analisado', contaDebito: 'Conta débito', impostosRetidos: 'Impostos retidos', numero: 'Número', valor: 'Valor', dataEmissao: 'Emissão', regimeTributario: 'Regime do fornecedor', pis: 'PIS', cofins: 'COFINS', ir: 'IR', csll: 'CSLL', iss: 'ISS', inss: 'INSS' };
 const MES_LABELS = { '01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro' };
 const STATUS_LABELS = { pendente:'Pendente', lancada:'Lançada', contabilizada:'Contabilizado', nao_contabilizada:'Lançada mas não contabilizada', cancelada:'Cancelada' };
 const ANALISADO_LABELS = { sim:'Já analisado', nao:'Ainda não analisado' };
@@ -5621,6 +5621,7 @@ function campoOpcoes(campo){
   if(campo === 'analisado') return Object.keys(ANALISADO_LABELS).map(v=>({value:v, label:ANALISADO_LABELS[v]}));
   if(campo === 'contaDebito') return [...new Set(entries.map(e => e.contaContabilNome || e.contaContabil || '').map(v=>v.trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR')).map(v=>({value:v, label:v}));
   if(campo === 'impostosRetidos') return [{value:'com', label:'Com retenção'}, {value:'sem', label:'Sem retenção'}];
+  if(['pis','cofins','ir','csll','iss','inss'].includes(campo)) return [{value:'com', label:'Com retenção'}, {value:'sem', label:'Sem retenção'}];
   if(campo === 'numero') return [...new Set(entries.map(e => (e.numero||'').toString().trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true})).map(v=>({value:v, label:v}));
   if(campo === 'valor') return [...new Set(entries.map(e => fmtMoney(e.valor)))].sort().map(v=>({value:v, label:v}));
   if(campo === 'dataEmissao') return [...new Set(entries.map(e => e.dataEmissao).filter(Boolean))].sort().map(v=>({value:v, label:fmtDate(v)}));
@@ -5797,6 +5798,12 @@ function getFiltered(){
   const analisado = filtroSelecionados.analisado;
   const contaDebito = filtroSelecionados.contaDebito;
   const impostosRetidos = filtroSelecionados.impostosRetidos;
+  const pisF = filtroSelecionados.pis;
+  const cofinsF = filtroSelecionados.cofins;
+  const irF = filtroSelecionados.ir;
+  const csllF = filtroSelecionados.csll;
+  const issF = filtroSelecionados.iss;
+  const inssF = filtroSelecionados.inss;
   const numeroChecklist = filtroSelecionados.numero;
   const valorChecklist = filtroSelecionados.valor;
   const dataEmissaoChecklist = filtroSelecionados.dataEmissao;
@@ -5827,6 +5834,12 @@ function getFiltered(){
     if(analisado.size && !analisado.has(e.analisado ? 'sim' : 'nao')) return false;
     if(contaDebito.size && !contaDebito.has((e.contaContabilNome || e.contaContabil || '').trim())) return false;
     if(impostosRetidos.size){ const temRetencao = ((Number(e.retidoPis)||0)+(Number(e.retidoCofins)||0)+(Number(e.retidoIr)||0)+(Number(e.retidoCsll)||0)+(Number(e.retidoIss)||0)+(Number(e.retidoInss)||0)) > 0; if(!impostosRetidos.has(temRetencao ? 'com' : 'sem')) return false; }
+    if(pisF.size && !pisF.has((Number(e.retidoPis)||0) > 0 ? 'com' : 'sem')) return false;
+    if(cofinsF.size && !cofinsF.has((Number(e.retidoCofins)||0) > 0 ? 'com' : 'sem')) return false;
+    if(irF.size && !irF.has((Number(e.retidoIr)||0) > 0 ? 'com' : 'sem')) return false;
+    if(csllF.size && !csllF.has((Number(e.retidoCsll)||0) > 0 ? 'com' : 'sem')) return false;
+    if(issF.size && !issF.has((Number(e.retidoIss)||0) > 0 ? 'com' : 'sem')) return false;
+    if(inssF.size && !inssF.has((Number(e.retidoInss)||0) > 0 ? 'com' : 'sem')) return false;
     if(numeroChecklist.size && !numeroChecklist.has((e.numero||'').toString().trim())) return false;
     if(valorChecklist.size && !valorChecklist.has(fmtMoney(e.valor))) return false;
     if(dataEmissaoChecklist.size && !dataEmissaoChecklist.has(e.dataEmissao)) return false;
@@ -5947,7 +5960,7 @@ function renderTable(list){
   </tr>`).join('');
 
   container.innerHTML = `<table>
-    <thead><tr><th style="text-align:center;"><input type="checkbox" id="st_chkAnalisadoTodos" title="Marcar/desmarcar todos os exibidos como analisados" style="width:16px;height:16px;cursor:pointer;"></th><th>Emitente <button type="button" class="xf-btn" data-compact="1" data-campo="emitente" style="all:unset;cursor:pointer;">▾</button></th><th>Número <button type="button" class="xf-btn" data-compact="1" data-campo="numero" style="all:unset;cursor:pointer;">▾</button></th><th>Emissão <button type="button" class="xf-btn" data-compact="1" data-campo="dataEmissao" style="all:unset;cursor:pointer;">▾</button></th><th>Valor <button type="button" class="xf-btn" data-compact="1" data-campo="valor" style="all:unset;cursor:pointer;">▾</button></th><th>Código de Serviço <button type="button" class="xf-btn" data-compact="1" data-campo="codigoServico" style="all:unset;cursor:pointer;">▾</button></th><th>Destinatário <button type="button" class="xf-btn" data-compact="1" data-campo="destinatario" style="all:unset;cursor:pointer;">▾</button></th><th>Status <button type="button" class="xf-btn" data-compact="1" data-campo="status" style="all:unset;cursor:pointer;">▾</button></th><th>Conta débito <button type="button" class="xf-btn" data-compact="1" data-campo="contaDebito" style="all:unset;cursor:pointer;">▾</button></th><th>PIS</th><th>COFINS</th><th>IR</th><th>CSLL</th><th>ISS</th><th>INSS</th><th>Confere retenção <button type="button" class="xf-btn" data-compact="1" data-campo="impostosRetidos" style="all:unset;cursor:pointer;">▾</button></th><th>Regime do fornecedor <button type="button" class="xf-btn" data-compact="1" data-campo="regimeTributario" style="all:unset;cursor:pointer;">▾</button></th><th></th></tr></thead>
+    <thead><tr><th style="text-align:center;"><input type="checkbox" id="st_chkAnalisadoTodos" title="Marcar/desmarcar todos os exibidos como analisados" style="width:16px;height:16px;cursor:pointer;"></th><th>Emitente <button type="button" class="xf-btn" data-compact="1" data-campo="emitente" style="all:unset;cursor:pointer;">▾</button></th><th>Número <button type="button" class="xf-btn" data-compact="1" data-campo="numero" style="all:unset;cursor:pointer;">▾</button></th><th>Emissão <button type="button" class="xf-btn" data-compact="1" data-campo="dataEmissao" style="all:unset;cursor:pointer;">▾</button></th><th>Valor <button type="button" class="xf-btn" data-compact="1" data-campo="valor" style="all:unset;cursor:pointer;">▾</button></th><th>Código de Serviço <button type="button" class="xf-btn" data-compact="1" data-campo="codigoServico" style="all:unset;cursor:pointer;">▾</button></th><th>Destinatário <button type="button" class="xf-btn" data-compact="1" data-campo="destinatario" style="all:unset;cursor:pointer;">▾</button></th><th>Status <button type="button" class="xf-btn" data-compact="1" data-campo="status" style="all:unset;cursor:pointer;">▾</button></th><th>Conta débito <button type="button" class="xf-btn" data-compact="1" data-campo="contaDebito" style="all:unset;cursor:pointer;">▾</button></th><th>PIS <button type="button" class="xf-btn" data-compact="1" data-campo="pis" style="all:unset;cursor:pointer;">▾</button></th><th>COFINS <button type="button" class="xf-btn" data-compact="1" data-campo="cofins" style="all:unset;cursor:pointer;">▾</button></th><th>IR <button type="button" class="xf-btn" data-compact="1" data-campo="ir" style="all:unset;cursor:pointer;">▾</button></th><th>CSLL <button type="button" class="xf-btn" data-compact="1" data-campo="csll" style="all:unset;cursor:pointer;">▾</button></th><th>ISS <button type="button" class="xf-btn" data-compact="1" data-campo="iss" style="all:unset;cursor:pointer;">▾</button></th><th>INSS <button type="button" class="xf-btn" data-compact="1" data-campo="inss" style="all:unset;cursor:pointer;">▾</button></th><th>Confere retenção <button type="button" class="xf-btn" data-compact="1" data-campo="impostosRetidos" style="all:unset;cursor:pointer;">▾</button></th><th>Regime do fornecedor <button type="button" class="xf-btn" data-compact="1" data-campo="regimeTributario" style="all:unset;cursor:pointer;">▾</button></th><th></th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 
