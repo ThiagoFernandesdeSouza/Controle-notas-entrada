@@ -1385,6 +1385,7 @@
         <div><label for="st_mapIr">IR retido (R$)</label><select id="st_mapIr"></select></div>
         <div><label for="st_mapCsll">CSLL retido (R$)</label><select id="st_mapCsll"></select></div>
         <div><label for="st_mapIss">ISS retido (R$)</label><select id="st_mapIss"></select></div>
+        <div><label for="st_mapIssRetido">ISS Retido? (Sim/Não)</label><select id="st_mapIssRetido"></select></div>
         <div><label for="st_mapInss">INSS retido (R$)</label><select id="st_mapInss"></select></div>
       </div>
       <button class="btn secondary" id="st_btnGerarPreview">Avançar</button>
@@ -2913,7 +2914,7 @@ async function salvarAnexoComRetry(id, dataUrl, nome, tentativas){
 async function confirmarPdfZip(){
   const btn = document.getElementById('btnPdfZipConfirmar');
   btn.disabled = true;
-  let ok=0, falhas=0;
+  let ok=0, falhas=0, falhasSeguidas=0, parouCedo=false;
   for(let i=0;i<pdfZipMatches.length;i++){
     const m = pdfZipMatches[i];
     btn.textContent = `Anexando ${i+1}/${pdfZipMatches.length}...`;
@@ -2925,8 +2926,15 @@ async function confirmarPdfZip(){
         const idx = entries.findIndex(e=>e.id===m.entry.id);
         if(idx>=0){ entries[idx].temAnexo=true; entries[idx].anexoNome=m.arquivo.nomeOriginal; }
         ok++;
-      } else falhas++;
-    }catch(e){ falhas++; }
+        falhasSeguidas = 0;
+      } else { falhas++; falhasSeguidas++; }
+    }catch(e){ falhas++; falhasSeguidas++; }
+    if(falhasSeguidas >= 5){
+      falhas += (pdfZipMatches.length - i - 1);
+      parouCedo = true;
+      alert(`Parei em ${ok} anexado(s) — os últimos 5 falharam seguidos, provável cota do Firebase ou conexão instável. Os ${pdfZipMatches.length - i - 1} restante(s) não foram tentados; reabra "Importar PDFs (ZIP)" com o mesmo arquivo depois — os já anexados são pulados automaticamente.`);
+      break;
+    }
     await sleep(200);
   }
   btn.textContent = 'Anexar PDFs casados';
@@ -2934,7 +2942,9 @@ async function confirmarPdfZip(){
   saveEntries();
   closePdfZipModal();
   render();
-  alert(falhas>0 ? `${ok} anexados, ${falhas} falharam — tente de novo.` : `${ok} PDF(s) anexados.`);
+  if(!parouCedo){
+    alert(falhas>0 ? `${ok} anexados, ${falhas} falharam — tente de novo.` : `${ok} PDF(s) anexados.`);
+  }
 }
 
 document.getElementById('btnImportarPdfs').addEventListener('click', openPdfZipModal);
@@ -4803,7 +4813,7 @@ async function salvarAnexoComRetry(id, dataUrl, nome, tentativas){
 async function confirmarPdfZip(){
   const btn = document.getElementById('nfts_btnPdfZipConfirmar');
   btn.disabled = true;
-  let ok = 0, falhas = 0;
+  let ok = 0, falhas = 0, falhasSeguidas = 0, parouCedo = false;
 
   for(let i = 0; i < pdfZipMatches.length; i++){
     const m = pdfZipMatches[i];
@@ -4819,12 +4829,21 @@ async function confirmarPdfZip(){
           entries[idx].anexoNome = m.arquivo.nomeOriginal;
         }
         ok++;
+        falhasSeguidas = 0;
       } else {
         falhas++;
+        falhasSeguidas++;
       }
     }catch(e){
       console.error('Erro processando PDF', m.arquivo.nomeOriginal, e);
       falhas++;
+      falhasSeguidas++;
+    }
+    if(falhasSeguidas >= 5){
+      falhas += (pdfZipMatches.length - i - 1);
+      parouCedo = true;
+      alert(`Parei em ${ok} anexado(s) — os últimos 5 falharam seguidos, provável cota do Firebase ou conexão instável. Os ${pdfZipMatches.length - i - 1} restante(s) não foram tentados; reabra "Importar PDFs (ZIP)" com o mesmo arquivo depois — os já anexados são pulados automaticamente.`);
+      break;
     }
     await sleep(200); // evita disparar muitas gravações seguidas rápido demais
   }
@@ -4834,10 +4853,12 @@ async function confirmarPdfZip(){
   saveEntries();
   closePdfZipModal();
   render();
-  if(falhas > 0){
-    alert(`${ok} PDF(s) anexados. ${falhas} falharam — tente anexá-los de novo (ex: rodando o ZIP em lotes menores).`);
-  } else {
-    alert(`${ok} PDF(s) anexados aos lançamentos correspondentes.`);
+  if(!parouCedo){
+    if(falhas > 0){
+      alert(`${ok} PDF(s) anexados. ${falhas} falharam — tente anexá-los de novo (ex: rodando o ZIP em lotes menores).`);
+    } else {
+      alert(`${ok} PDF(s) anexados aos lançamentos correspondentes.`);
+    }
   }
 }
 
@@ -5889,26 +5910,22 @@ function renderTable(list){
         ? `<div class="emitente-name" style="font-weight:400;">${escapeHtml(e.contaContabilNome || e.contaContabil)}</div>${e.contaContabilCodigo ? `<div class="sub">${escapeHtml(e.contaContabilCodigo)}</div>` : ''}`
         : '—'}
     </td>
+    <td class="num-col">${e.retidoPis ? fmtMoney(e.retidoPis) : '—'}</td>
+    <td class="num-col">${e.retidoCofins ? fmtMoney(e.retidoCofins) : '—'}</td>
+    <td class="num-col">${e.retidoIr ? fmtMoney(e.retidoIr) : '—'}</td>
+    <td class="num-col">${e.retidoCsll ? fmtMoney(e.retidoCsll) : '—'}</td>
+    <td class="num-col">${e.retidoIss ? fmtMoney(e.retidoIss) : '—'}</td>
+    <td class="num-col">${e.retidoInss ? fmtMoney(e.retidoInss) : '—'}</td>
     <td class="num-col">
       ${(() => {
         const totalRetido = (Number(e.retidoPis)||0) + (Number(e.retidoCofins)||0) + (Number(e.retidoIr)||0) + (Number(e.retidoCsll)||0) + (Number(e.retidoIss)||0) + (Number(e.retidoInss)||0);
         const deveria = calcularDeveriaReter(e);
-        const partes = [];
-        if(e.retidoPis) partes.push(`PIS ${fmtMoney(e.retidoPis)}`);
-        if(e.retidoCofins) partes.push(`COFINS ${fmtMoney(e.retidoCofins)}`);
-        if(e.retidoIr) partes.push(`IR ${fmtMoney(e.retidoIr)}`);
-        if(e.retidoCsll) partes.push(`CSLL ${fmtMoney(e.retidoCsll)}`);
-        if(e.retidoIss) partes.push(`ISS ${fmtMoney(e.retidoIss)}`);
-        if(e.retidoInss) partes.push(`INSS ${fmtMoney(e.retidoInss)}`);
-        const linhaRetido = totalRetido > 0
-          ? `<div class="emitente-name" style="font-weight:400;">${fmtMoney(totalRetido)}</div><div class="sub">${escapeHtml(partes.join(' · '))}</div>`
-          : `<div class="emitente-name" style="font-weight:400;">—</div>`;
-        if(deveria === null) return linhaRetido;
+        if(deveria === null) return `<div class="emitente-name" style="font-weight:400;">${fmtMoney(totalRetido)}</div>`;
         const diverge = Math.abs(deveria - totalRetido) > 0.01;
         const avisoDivergencia = diverge
           ? `<div class="sub" style="color:var(--red);">Deveria reter ${fmtMoney(deveria)} (sua tabela) — confira</div>`
           : (deveria > 0 ? `<div class="sub" style="color:var(--teal);">Bate com sua tabela (${fmtMoney(deveria)})</div>` : '');
-        return linhaRetido + avisoDivergencia;
+        return `<div class="emitente-name" style="font-weight:400;">${fmtMoney(totalRetido)}</div>` + avisoDivergencia;
       })()}
     </td>
     <td>
@@ -5928,7 +5945,7 @@ function renderTable(list){
   </tr>`).join('');
 
   container.innerHTML = `<table>
-    <thead><tr><th style="text-align:center;"><input type="checkbox" id="st_chkAnalisadoTodos" title="Marcar/desmarcar todos os exibidos como analisados" style="width:16px;height:16px;cursor:pointer;"></th><th>Emitente <button type="button" class="xf-btn" data-compact="1" data-campo="emitente" style="all:unset;cursor:pointer;">▾</button></th><th>Número <button type="button" class="xf-btn" data-compact="1" data-campo="numero" style="all:unset;cursor:pointer;">▾</button></th><th>Emissão <button type="button" class="xf-btn" data-compact="1" data-campo="dataEmissao" style="all:unset;cursor:pointer;">▾</button></th><th>Valor <button type="button" class="xf-btn" data-compact="1" data-campo="valor" style="all:unset;cursor:pointer;">▾</button></th><th>Código de Serviço <button type="button" class="xf-btn" data-compact="1" data-campo="codigoServico" style="all:unset;cursor:pointer;">▾</button></th><th>Destinatário <button type="button" class="xf-btn" data-compact="1" data-campo="destinatario" style="all:unset;cursor:pointer;">▾</button></th><th>Status <button type="button" class="xf-btn" data-compact="1" data-campo="status" style="all:unset;cursor:pointer;">▾</button></th><th>Conta débito <button type="button" class="xf-btn" data-compact="1" data-campo="contaDebito" style="all:unset;cursor:pointer;">▾</button></th><th>Impostos retidos <button type="button" class="xf-btn" data-compact="1" data-campo="impostosRetidos" style="all:unset;cursor:pointer;">▾</button></th><th>Regime do fornecedor <button type="button" class="xf-btn" data-compact="1" data-campo="regimeTributario" style="all:unset;cursor:pointer;">▾</button></th><th></th></tr></thead>
+    <thead><tr><th style="text-align:center;"><input type="checkbox" id="st_chkAnalisadoTodos" title="Marcar/desmarcar todos os exibidos como analisados" style="width:16px;height:16px;cursor:pointer;"></th><th>Emitente <button type="button" class="xf-btn" data-compact="1" data-campo="emitente" style="all:unset;cursor:pointer;">▾</button></th><th>Número <button type="button" class="xf-btn" data-compact="1" data-campo="numero" style="all:unset;cursor:pointer;">▾</button></th><th>Emissão <button type="button" class="xf-btn" data-compact="1" data-campo="dataEmissao" style="all:unset;cursor:pointer;">▾</button></th><th>Valor <button type="button" class="xf-btn" data-compact="1" data-campo="valor" style="all:unset;cursor:pointer;">▾</button></th><th>Código de Serviço <button type="button" class="xf-btn" data-compact="1" data-campo="codigoServico" style="all:unset;cursor:pointer;">▾</button></th><th>Destinatário <button type="button" class="xf-btn" data-compact="1" data-campo="destinatario" style="all:unset;cursor:pointer;">▾</button></th><th>Status <button type="button" class="xf-btn" data-compact="1" data-campo="status" style="all:unset;cursor:pointer;">▾</button></th><th>Conta débito <button type="button" class="xf-btn" data-compact="1" data-campo="contaDebito" style="all:unset;cursor:pointer;">▾</button></th><th>PIS</th><th>COFINS</th><th>IR</th><th>CSLL</th><th>ISS</th><th>INSS</th><th>Confere retenção <button type="button" class="xf-btn" data-compact="1" data-campo="impostosRetidos" style="all:unset;cursor:pointer;">▾</button></th><th>Regime do fornecedor <button type="button" class="xf-btn" data-compact="1" data-campo="regimeTributario" style="all:unset;cursor:pointer;">▾</button></th><th></th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 
@@ -6242,7 +6259,12 @@ document.getElementById('st_btnExportarExcel').addEventListener('click', ()=>{
     'Destinatário': e.destinatario || '',
     'Status': e.cancelada ? 'Cancelada' : (e.lancada ? (e.contabilizada ? 'Contabilizado' : 'Lançada mas não contabilizada') : 'Pendente'),
     'Conta débito': e.contaContabilNome || e.contaContabil || '',
-    'Impostos retidos': (Number(e.retidoPis||0)+Number(e.retidoCofins||0)+Number(e.retidoIr||0)+Number(e.retidoCsll||0)+Number(e.retidoIss||0)+Number(e.retidoInss||0)),
+    'PIS retido': Number(e.retidoPis) || 0,
+    'COFINS retido': Number(e.retidoCofins) || 0,
+    'IR retido': Number(e.retidoIr) || 0,
+    'CSLL retido': Number(e.retidoCsll) || 0,
+    'ISS retido': Number(e.retidoIss) || 0,
+    'INSS retido': Number(e.retidoInss) || 0,
     'Regime do fornecedor': e.regimeTributario || '',
     'Discriminação': e.discriminacao || ''
   }));
@@ -6386,6 +6408,7 @@ function goToStep2(){
   fill('st_mapIr').value = guessColumn(importHeaders, [['ir']]);
   fill('st_mapCsll').value = guessColumn(importHeaders, [['csll']]);
   fill('st_mapIss').value = guessColumn(importHeaders, [['iss']]);
+  fill('st_mapIssRetido').value = guessColumn(importHeaders, [['iss','retid'],['retencao','iss']]);
   fill('st_mapInss').value = guessColumn(importHeaders, [['inss']]);
 }
 
@@ -6550,6 +6573,7 @@ function buildPreview(){
   const iIr = parseInt(document.getElementById('st_mapIr').value);
   const iCsll = parseInt(document.getElementById('st_mapCsll').value);
   const iIss = parseInt(document.getElementById('st_mapIss').value);
+  const iIssRetido = parseInt(document.getElementById('st_mapIssRetido').value);
   const iInss = parseInt(document.getElementById('st_mapInss').value);
   const iDiscriminacao = parseInt(document.getElementById('st_mapDiscriminacao').value);
 
@@ -6581,7 +6605,7 @@ function buildPreview(){
       retidoCofins: iCofins >= 0 ? parseValorBR(row[iCofins]) : 0,
       retidoIr: iIr >= 0 ? parseValorBR(row[iIr]) : 0,
       retidoCsll: iCsll >= 0 ? parseValorBR(row[iCsll]) : 0,
-      retidoIss: iIss >= 0 ? parseValorBR(row[iIss]) : 0,
+      retidoIss: (iIss >= 0 && (iIssRetido < 0 || normalizeStr((row[iIssRetido] || '').toString()).includes('sim'))) ? parseValorBR(row[iIss]) : 0,
       retidoInss: iInss >= 0 ? parseValorBR(row[iInss]) : 0,
       discriminacao: iDiscriminacao >= 0 ? (row[iDiscriminacao] || '').toString().trim() : ''
     });
@@ -6920,7 +6944,7 @@ async function salvarAnexoComRetry(id, dataUrl, nome, tentativas){
 async function confirmarPdfZip(){
   const btn = document.getElementById('st_btnPdfZipConfirmar');
   btn.disabled = true;
-  let ok=0, falhas=0;
+  let ok=0, falhas=0, falhasSeguidas=0, parouCedo=false;
   for(let i=0;i<pdfZipMatches.length;i++){
     const m = pdfZipMatches[i];
     btn.textContent = `Anexando ${i+1}/${pdfZipMatches.length}...`;
@@ -6932,8 +6956,15 @@ async function confirmarPdfZip(){
         const idx = entries.findIndex(e=>e.id===m.entry.id);
         if(idx>=0){ entries[idx].temAnexo=true; entries[idx].anexoNome=m.arquivo.nomeOriginal; }
         ok++;
-      } else falhas++;
-    }catch(e){ falhas++; }
+        falhasSeguidas = 0;
+      } else { falhas++; falhasSeguidas++; }
+    }catch(e){ falhas++; falhasSeguidas++; }
+    if(falhasSeguidas >= 5){
+      falhas += (pdfZipMatches.length - i - 1);
+      parouCedo = true;
+      alert(`Parei em ${ok} anexado(s) — os últimos 5 falharam seguidos, provável cota do Firebase ou conexão instável. Os ${pdfZipMatches.length - i - 1} restante(s) não foram tentados; reabra "Importar PDFs (ZIP)" com o mesmo arquivo depois — os já anexados são pulados automaticamente.`);
+      break;
+    }
     await sleep(200);
   }
   btn.textContent = 'Anexar PDFs casados';
@@ -6941,7 +6972,9 @@ async function confirmarPdfZip(){
   saveEntries();
   closePdfZipModal();
   render();
-  alert(falhas>0 ? `${ok} anexados, ${falhas} falharam — tente de novo.` : `${ok} PDF(s) anexados.`);
+  if(!parouCedo){
+    alert(falhas>0 ? `${ok} anexados, ${falhas} falharam — tente de novo.` : `${ok} PDF(s) anexados.`);
+  }
 }
 
 document.getElementById('st_btnImportarPdfs').addEventListener('click', openPdfZipModal);
