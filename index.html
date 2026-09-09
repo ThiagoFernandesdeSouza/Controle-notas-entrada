@@ -4231,10 +4231,10 @@ function goToStep2(){
   fill('mapPrestador').value = guessColumn(importHeaders, [['prestador','nome'],['prestador','razao'],['fornecedor'],['prestador']]);
   fill('mapPrestadorCnpj').value = guessColumn(importHeaders, [['cpf','cnpj','prestador'],['cnpj','prestador']]);
   fill('mapMunicipio').value = guessColumn(importHeaders, [['municipio','prestador'],['municipio']]);
-  fill('mapData').value = guessColumn(importHeaders, [['data','emissao'],['competencia'],['data']]);
-  fill('mapValor').value = guessColumn(importHeaders, [['valor','servico'],['valor']]);
-  fill('mapChave').value = guessColumn(importHeaders, [['codigo','verificacao'],['chave'],['numero']]);
-  fill('mapNumero').value = guessColumn(importHeaders, [['numero']]);
+  fill('nfts_mapData').value = guessColumn(importHeaders, [['data','emissao'],['competencia'],['data']]);
+  fill('nfts_mapValor').value = guessColumn(importHeaders, [['valor','servico'],['valor']]);
+  fill('nfts_mapChave').value = guessColumn(importHeaders, [['codigo','verificacao'],['chave'],['numero']]);
+  fill('nfts_mapNumero').value = guessColumn(importHeaders, [['numero']]);
   fill('mapTomadorCnpj').value = guessColumn(importHeaders, [['cnpj','tomador'],['cpf','tomador']]);
   fill('mapRetencao').value = guessColumn(importHeaders, [['iss','retido'],['retencao','iss']]);
   fill('mapCancelada').value = guessColumn(importHeaders, [['cancelada']]);
