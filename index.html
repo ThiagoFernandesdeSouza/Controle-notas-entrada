@@ -955,8 +955,12 @@
           <select id="mapMunicipio"></select>
         </div>
         <div>
-          <label for="nfts_mapData">Data (emissão ou competência)</label>
+          <label for="nfts_mapData">Data de prestação (competência)</label>
           <select id="nfts_mapData"></select>
+        </div>
+        <div>
+          <label for="nfts_mapDataEmissao">Data de emissão da NFS-e</label>
+          <select id="nfts_mapDataEmissao"></select>
         </div>
         <div>
           <label for="nfts_mapValor">Valor</label>
@@ -3803,10 +3807,11 @@ function renderTable(list){
     return `<tr class="${rowClass}">
       <td>
         <div class="prestador-name">${escapeHtml(e.prestador)}</div>
-        <div class="sub">${MOTIVO_LABEL[e.motivo] || ''}${e.status === 'cancelada' && e.dataCancelamento ? ` · Cancelada em ${fmtDate(e.dataCancelamento)}` : ''}</div>
+        <div class="sub">${e.qiveNumero ? `Nº ${escapeHtml(e.qiveNumero)} · ` : ''}${MOTIVO_LABEL[e.motivo] || ''}${e.status === 'cancelada' && e.dataCancelamento ? ` · Cancelada em ${fmtDate(e.dataCancelamento)}` : ''}</div>
       </td>
       <td>${escapeHtml(empLabel)}</td>
       <td class="num-col">${fmtDate(e.dataServico)}</td>
+      <td class="num-col">${e.dataEmissao ? fmtDate(e.dataEmissao) : '—'}</td>
       <td>${e.retencao === 'sim' ? 'Sim' : 'Não'}</td>
       <td class="num-col">${fmtMoney(e.valor)}</td>
       <td class="num-col">${fmtDate(s.prazo)}</td>
@@ -3828,6 +3833,7 @@ function renderTable(list){
         <th>Prestador <button type="button" class="th-jump-btn" data-jump="fBusca" title="Filtrar por prestador">▾</button></th>
         <th>Empreendimento <button type="button" class="th-jump-btn" data-jump="fEmpreendimento" title="Filtrar por empreendimento">▾</button></th>
         <th>Prestação <button type="button" class="th-jump-btn" data-jump="nfts_fDataDe" title="Filtrar por período">▾</button></th>
+        <th>Emissão</th>
         <th>Retenção ISS <button type="button" class="th-jump-btn" data-jump="fRetencao" title="Filtrar por retenção">▾</button></th>
         <th>Valor</th>
         <th>Prazo NFTS</th>
@@ -4231,7 +4237,8 @@ function goToStep2(){
   fill('mapPrestador').value = guessColumn(importHeaders, [['prestador','nome'],['prestador','razao'],['fornecedor'],['prestador']]);
   fill('mapPrestadorCnpj').value = guessColumn(importHeaders, [['cpf','cnpj','prestador'],['cnpj','prestador']]);
   fill('mapMunicipio').value = guessColumn(importHeaders, [['municipio','prestador'],['municipio']]);
-  fill('nfts_mapData').value = guessColumn(importHeaders, [['data','emissao'],['competencia'],['data']]);
+  fill('nfts_mapData').value = guessColumn(importHeaders, [['competencia'],['data','prestacao'],['data','emissao'],['data']]);
+  fill('nfts_mapDataEmissao').value = guessColumn(importHeaders, [['data','emissao'],['emissao']]);
   fill('nfts_mapValor').value = guessColumn(importHeaders, [['valor','servico'],['valor']]);
   fill('nfts_mapChave').value = guessColumn(importHeaders, [['codigo','verificacao'],['chave'],['numero']]);
   fill('nfts_mapNumero').value = guessColumn(importHeaders, [['numero']]);
@@ -4275,6 +4282,7 @@ function buildPreview(){
   const iPrestador = parseInt(document.getElementById('mapPrestador').value);
   const iMunicipio = parseInt(document.getElementById('mapMunicipio').value);
   const iData = parseInt(document.getElementById('nfts_mapData').value);
+  const iDataEmissao = parseInt(document.getElementById('nfts_mapDataEmissao').value);
   const iValor = parseInt(document.getElementById('nfts_mapValor').value);
   const iChave = parseInt(document.getElementById('nfts_mapChave').value);
   const iNumero = parseInt(document.getElementById('nfts_mapNumero').value);
@@ -4324,6 +4332,7 @@ function buildPreview(){
       prestador: iPrestador >= 0 ? row[iPrestador] : '(prestador não identificado)',
       municipio,
       dataServico: iData >= 0 ? excelDateToISO(row[iData]) : '',
+      dataEmissao: iDataEmissao >= 0 ? excelDateToISO(row[iDataEmissao]) : '',
       valor: valorNum,
       empreendimento,
       retencao
@@ -4378,7 +4387,7 @@ function confirmImport(){
       valor: r.valor,
       retencao: r.retencao,
       status: 'pendente',
-      dataEmissao: '',
+      dataEmissao: r.dataEmissao || '',
       observacoes: `Importado da Qive — município do prestador: ${r.municipio}`,
       qiveChave: r.chave,
       qivePrestadorCnpj: r.prestadorCnpj,
