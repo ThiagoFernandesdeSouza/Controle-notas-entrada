@@ -657,6 +657,8 @@
       <button class="btn secondary" id="nfts_btnImportarPdfs">Importar PDFs (ZIP)</button>
       <button class="btn secondary" id="nfts_btnLimparAnexos">Remover todos os anexos</button>
       <button class="btn secondary" id="nfts_btnRemoverDuplicados">Remover duplicados</button>
+      <button class="btn secondary" id="nfts_btnConciliarPrefeitura">Conciliar NFS-e emitidas (Prefeitura)</button>
+      <input type="file" id="nfts_conciliarInput" accept=".csv" style="display:none;">
       <button class="btn secondary" id="btnMarcarCanceladas">Marcar canceladas (planilha)</button>
       <button class="btn" id="nfts_btnNovo">Novo lançamento</button>
     </div>
@@ -4956,6 +4958,84 @@ document.getElementById('nfts_btnRemoverDuplicados').addEventListener('click', a
   idsRemover.forEach(id => excluirNotaFirestoreNfts(id));
   render();
   alert(`${paraRemover.length} lançamento(s) duplicado(s) removido(s). Restaram ${entries.length} lançamento(s) no total.`);
+});
+
+function parseDataHoraBR(s){
+  // "08/09/2026 09:29:26" -> "2026-09-08"
+  const m = (s || '').toString().trim().match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(!m) return '';
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
+
+document.getElementById('nfts_btnConciliarPrefeitura').addEventListener('click', ()=>{
+  document.getElementById('nfts_conciliarInput').click();
+});
+document.getElementById('nfts_conciliarInput').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  ev.target.value = '';
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    let texto;
+    try{ texto = new TextDecoder('iso-8859-1').decode(new Uint8Array(e.target.result)); }
+    catch(err){ alert('Não consegui ler esse arquivo.'); return; }
+
+    const linhas = parseCsv(texto);
+    if(linhas.length < 2){ alert('Arquivo vazio.'); return; }
+    const headers = linhas[0];
+    const dados = linhas.slice(1);
+
+    const iNumeroDoc = headers.findIndex(h => normalizeStr(h) === normalizeStr('Número do Documento'));
+    const iCnpjPrestador = headers.findIndex(h => normalizeStr(h) === normalizeStr('CPF/CNPJ do Prestador'));
+    const iNumeroNfts = headers.findIndex(h => normalizeStr(h) === normalizeStr('Nº NFTS'));
+    const iDataEmissaoNfts = headers.findIndex(h => normalizeStr(h) === normalizeStr('Data Hora Emissão NFTS'));
+    const iDataCancelamento = headers.findIndex(h => normalizeStr(h) === normalizeStr('Data de Cancelamento'));
+
+    if(iNumeroDoc < 0 || iCnpjPrestador < 0){
+      alert('Não reconheci esse arquivo — esperava as colunas "Número do Documento" e "CPF/CNPJ do Prestador" (export padrão da Prefeitura de São Paulo).');
+      return;
+    }
+
+    const porChave = new Map();
+    dados.forEach(row=>{
+      const numeroDoc = (row[iNumeroDoc] || '').toString().trim().replace(/^0+(?=\d)/, '');
+      const cnpj = (row[iCnpjPrestador] || '').toString().replace(/\D/g, '');
+      if(!numeroDoc || !cnpj) return;
+      porChave.set(`${numeroDoc}|${cnpj}`, row);
+    });
+
+    let marcadasEmitidas = 0, marcadasCanceladas = 0, jaEstavam = 0, naoEncontradas = 0;
+    entries.forEach(entry=>{
+      const numeroEntry = (entry.qiveNumero || '').toString().trim().replace(/^0+(?=\d)/, '');
+      const cnpjEntry = (entry.qivePrestadorCnpj || '').toString().replace(/\D/g, '');
+      if(!numeroEntry || !cnpjEntry) return;
+      const row = porChave.get(`${numeroEntry}|${cnpjEntry}`);
+      if(!row){ naoEncontradas++; return; }
+
+      const dataCancelamento = iDataCancelamento >= 0 ? (row[iDataCancelamento] || '').toString().trim() : '';
+      if(dataCancelamento){
+        if(entry.status !== 'cancelada'){
+          entry.status = 'cancelada';
+          entry.dataCancelamento = parseDataHoraBR(dataCancelamento);
+          marcadasCanceladas++;
+        } else jaEstavam++;
+        return;
+      }
+      if(entry.status === 'emitida'){ jaEstavam++; return; }
+      entry.status = 'emitida';
+      entry.numeroNfts = iNumeroNfts >= 0 ? (row[iNumeroNfts] || '').toString().trim() : '';
+      entry.dataEmissao = iDataEmissaoNfts >= 0 ? parseDataHoraBR(row[iDataEmissaoNfts]) : entry.dataEmissao;
+      entry.conciliadoPrefeitura = true;
+      marcadasEmitidas++;
+    });
+
+    if(marcadasEmitidas > 0 || marcadasCanceladas > 0){
+      await saveEntries();
+      render();
+    }
+    alert(`Conciliação concluída:\n${marcadasEmitidas} marcada(s) como emitida(s)\n${marcadasCanceladas} marcada(s) como cancelada(s)\n${jaEstavam} já estavam com esse status\n${naoEncontradas} pendente(s) não encontrada(s) nesse arquivo (continuam pendentes)`);
+  };
+  reader.readAsArrayBuffer(file);
 });
 document.getElementById('nfts_btnPdfZipCancelar').addEventListener('click', closePdfZipModal);
 document.getElementById('nfts_pdfZipOverlay').addEventListener('click', (ev)=>{
