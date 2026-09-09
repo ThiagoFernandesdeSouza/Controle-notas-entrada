@@ -660,6 +660,8 @@
       <button class="btn secondary" id="nfts_btnConciliarPrefeitura">Conciliar NFS-e emitidas (Prefeitura)</button>
       <input type="file" id="nfts_conciliarInput" accept=".csv" style="display:none;">
       <button class="btn secondary" id="btnMarcarCanceladas">Marcar canceladas (planilha)</button>
+      <button class="btn secondary" id="nfts_btnApagarImportacaoQive" style="border-color:var(--red);color:var(--red);">Apagar importação Qive</button>
+      <button class="btn secondary" id="nfts_btnApagarTudo" style="border-color:var(--red);color:var(--red);">Apagar todos os lançamentos</button>
       <button class="btn" id="nfts_btnNovo">Novo lançamento</button>
     </div>
   </div>
@@ -825,6 +827,16 @@
         <h3>Canceladas por mês</h3>
         <canvas id="nfts_chartCanceladas" height="220"></canvas>
       </div>
+    </div>
+  </div>
+
+  <div id="nfts_xfPanel" class="xf-panel">
+    <input type="text" id="nfts_xfSearch" placeholder="Pesquisar">
+    <label class="xf-item xf-selectall"><input type="checkbox" id="nfts_xfSelectAll" checked> (Selecionar Tudo)</label>
+    <div id="nfts_xfList" class="xf-list"></div>
+    <div class="xf-actions">
+      <button type="button" class="btn small" id="nfts_xfOk">OK</button>
+      <button type="button" class="btn secondary small" id="nfts_xfCancel">Cancelar</button>
     </div>
   </div>
 </div>
@@ -3759,11 +3771,22 @@ function getFiltered(){
   const dataCampo = document.getElementById('fDataCampo').value;
   const dataDe = document.getElementById('nfts_fDataDe').value;
   const dataAte = document.getElementById('nfts_fDataAte').value;
+  const fPrestador = filtroSelecionadosNfts.prestador;
+  const fEmp2 = filtroSelecionadosNfts.empreendimento;
+  const fDataServico = filtroSelecionadosNfts.dataServico;
+  const fDataEmissao = filtroSelecionadosNfts.dataEmissao;
+  const fRetencao2 = filtroSelecionadosNfts.retencao;
 
   return entries.filter(e=>{
     if(busca && !e.prestador.toLowerCase().includes(busca)) return false;
     if(emp && e.empreendimento !== emp) return false;
     if(retencao && e.retencao !== retencao) return false;
+    const empLabelAtual = e.empreendimento === 'Outro' && e.empreendimentoOutro ? e.empreendimentoOutro : e.empreendimento;
+    if(fPrestador.size && !fPrestador.has(e.prestador)) return false;
+    if(fEmp2.size && !fEmp2.has(empLabelAtual)) return false;
+    if(fDataServico.size && !fDataServico.has(e.dataServico)) return false;
+    if(fDataEmissao.size && !fDataEmissao.has(e.dataEmissao)) return false;
+    if(fRetencao2.size && !fRetencao2.has(e.retencao)) return false;
     if(status){
       const s = getSituacao(e);
       if(status === 'nao_cancelada' && e.status === 'cancelada') return false;
@@ -3843,11 +3866,11 @@ function renderTable(list){
   container.innerHTML = `<table>
     <thead>
       <tr>
-        <th>Prestador <button type="button" class="th-jump-btn" data-jump="fBusca" title="Filtrar por prestador">▾</button></th>
-        <th>Empreendimento <button type="button" class="th-jump-btn" data-jump="fEmpreendimento" title="Filtrar por empreendimento">▾</button></th>
-        <th>Prestação <button type="button" class="th-jump-btn" data-jump="nfts_fDataDe" title="Filtrar por período">▾</button></th>
-        <th>Emissão</th>
-        <th>Retenção ISS <button type="button" class="th-jump-btn" data-jump="fRetencao" title="Filtrar por retenção">▾</button></th>
+        <th>Prestador <button type="button" class="xf-btn" data-compact="1" data-campo="prestador" style="all:unset;cursor:pointer;">▾</button></th>
+        <th>Empreendimento <button type="button" class="xf-btn" data-compact="1" data-campo="empreendimento" style="all:unset;cursor:pointer;">▾</button></th>
+        <th>Prestação <button type="button" class="xf-btn" data-compact="1" data-campo="dataServico" style="all:unset;cursor:pointer;">▾</button></th>
+        <th>Emissão <button type="button" class="xf-btn" data-compact="1" data-campo="dataEmissao" style="all:unset;cursor:pointer;">▾</button></th>
+        <th>Retenção ISS <button type="button" class="xf-btn" data-compact="1" data-campo="retencao" style="all:unset;cursor:pointer;">▾</button></th>
         <th>Valor</th>
         <th>Prazo NFTS</th>
         <th>Situação <button type="button" class="th-jump-btn" data-jump="fStatus" title="Filtrar por situação">▾</button></th>
@@ -3869,6 +3892,15 @@ function renderTable(list){
       setTimeout(()=> row.classList.remove('fs-highlight'), 1600);
     });
   });
+
+  container.querySelectorAll('.xf-btn').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      if(xfCampoAtualNfts === btn.dataset.campo){ fecharPainelFiltroNfts(); return; }
+      abrirPainelFiltroNfts(btn.dataset.campo, btn);
+    });
+  });
+  atualizarBotoesFiltroNfts();
 
   container.querySelectorAll('[data-action="edit"]').forEach(btn=>{
     btn.addEventListener('click', ()=>openModal(btn.dataset.id));
@@ -3995,6 +4027,7 @@ document.getElementById('nfts_btnLimpar').addEventListener('click', ()=>{
   document.getElementById('fDataCampo').value='dataServico';
   document.getElementById('nfts_fDataDe').value='';
   document.getElementById('nfts_fDataAte').value='';
+  Object.keys(filtroSelecionadosNfts).forEach(k => filtroSelecionadosNfts[k] = new Set());
   render();
 });
 document.getElementById('nfts_btnExportarExcel').addEventListener('click', ()=>{
@@ -4171,6 +4204,90 @@ let importRows = [];
 let importHeaders = [];
 let previewRows = [];
 let importedKeys = new Set();
+
+const filtroSelecionadosNfts = { prestador: new Set(), empreendimento: new Set(), dataServico: new Set(), dataEmissao: new Set(), retencao: new Set() };
+const CAMPO_LABELS_NFTS = { prestador: 'Prestador', empreendimento: 'Empreendimento', dataServico: 'Prestação', dataEmissao: 'Emissão', retencao: 'Retenção ISS' };
+
+function campoOpcoesNfts(campo){
+  if(campo === 'prestador') return [...new Set(entries.map(e => e.prestador).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR')).map(v=>({value:v, label:v}));
+  if(campo === 'empreendimento') return [...new Set(entries.map(e => e.empreendimento === 'Outro' && e.empreendimentoOutro ? e.empreendimentoOutro : e.empreendimento).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR')).map(v=>({value:v, label:v}));
+  if(campo === 'dataServico') return [...new Set(entries.map(e => e.dataServico).filter(Boolean))].sort().map(v=>({value:v, label:fmtDate(v)}));
+  if(campo === 'dataEmissao') return [...new Set(entries.map(e => e.dataEmissao).filter(Boolean))].sort().map(v=>({value:v, label:fmtDate(v)}));
+  if(campo === 'retencao') return [{value:'sim', label:'Sim'}, {value:'nao', label:'Não'}];
+  return [];
+}
+
+function atualizarBotoesFiltroNfts(){
+  document.getElementById('moduloNfts').querySelectorAll('.xf-btn').forEach(btn=>{
+    const campo = btn.dataset.campo;
+    const sel = filtroSelecionadosNfts[campo];
+    if(!sel) return;
+    btn.textContent = sel.size === 0 ? '▾' : `▾ (${sel.size})`;
+    btn.style.color = sel.size === 0 ? '' : 'var(--accent)';
+  });
+}
+
+let xfCampoAtualNfts = null;
+let xfTrabalhoNfts = new Set();
+
+function fecharPainelFiltroNfts(){
+  document.getElementById('nfts_xfPanel').classList.remove('open');
+  xfCampoAtualNfts = null;
+}
+
+function abrirPainelFiltroNfts(campo, btnEl){
+  xfCampoAtualNfts = campo;
+  const painel = document.getElementById('nfts_xfPanel');
+  const opcoes = campoOpcoesNfts(campo);
+  const selecionados = filtroSelecionadosNfts[campo];
+  xfTrabalhoNfts = selecionados.size === 0 ? new Set(opcoes.map(o=>o.value)) : new Set(selecionados);
+
+  const renderLista = (filtroTexto)=>{
+    const termo = (filtroTexto || '').toLowerCase();
+    const visiveis = opcoes.filter(o => o.label.toLowerCase().includes(termo));
+    document.getElementById('nfts_xfList').innerHTML = visiveis.map(o => `
+      <label class="xf-item">
+        <input type="checkbox" value="${escapeHtml(o.value)}" ${xfTrabalhoNfts.has(o.value) ? 'checked' : ''}>
+        <span>${escapeHtml(o.label)}</span>
+      </label>`).join('') || '<p class="hint">Nenhuma opção encontrada.</p>';
+
+    document.querySelectorAll('#nfts_xfList input[type="checkbox"]').forEach(chk=>{
+      chk.addEventListener('change', (ev)=>{
+        if(ev.target.checked) xfTrabalhoNfts.add(ev.target.value);
+        else xfTrabalhoNfts.delete(ev.target.value);
+        document.getElementById('nfts_xfSelectAll').checked = visiveis.every(o => xfTrabalhoNfts.has(o.value));
+      });
+    });
+
+    const todasMarcadas = visiveis.length > 0 && visiveis.every(o => xfTrabalhoNfts.has(o.value));
+    document.getElementById('nfts_xfSelectAll').checked = todasMarcadas;
+
+    document.getElementById('nfts_xfSelectAll').onchange = (ev)=>{
+      visiveis.forEach(o => { if(ev.target.checked) xfTrabalhoNfts.add(o.value); else xfTrabalhoNfts.delete(o.value); });
+      document.querySelectorAll('#nfts_xfList input[type="checkbox"]').forEach(chk => chk.checked = ev.target.checked);
+    };
+  };
+
+  document.getElementById('nfts_xfSearch').value = '';
+  renderLista('');
+  document.getElementById('nfts_xfSearch').oninput = (ev)=> renderLista(ev.target.value);
+
+  const rect = btnEl.getBoundingClientRect();
+  painel.style.top = `${window.scrollY + rect.bottom + 4}px`;
+  painel.style.left = `${window.scrollX + rect.left}px`;
+  painel.classList.add('open');
+}
+
+document.getElementById('nfts_xfPanel').addEventListener('click', (ev)=> ev.stopPropagation());
+document.addEventListener('click', ()=> fecharPainelFiltroNfts());
+document.getElementById('nfts_xfCancel').addEventListener('click', fecharPainelFiltroNfts);
+document.getElementById('nfts_xfOk').addEventListener('click', ()=>{
+  if(!xfCampoAtualNfts) return;
+  const opcoesTotais = campoOpcoesNfts(xfCampoAtualNfts);
+  filtroSelecionadosNfts[xfCampoAtualNfts] = xfTrabalhoNfts.size === opcoesTotais.length ? new Set() : new Set(xfTrabalhoNfts);
+  fecharPainelFiltroNfts();
+  render();
+});
 
 async function loadImportedKeys(){
   await firebaseProntoPromise;
@@ -4926,6 +5043,66 @@ function chaveDuplicidade(e){
   if(e.qiveChave) return `qc:${e.qiveChave}`;
   return `fb:${normalizeStr(e.prestador)}|${e.dataServico}|${e.valor}|${e.empreendimento}`;
 }
+
+document.getElementById('nfts_btnApagarImportacaoQive').addEventListener('click', async ()=>{
+  const daQive = entries.filter(e => (e.observacoes || '').includes('Importado da Qive'));
+  if(daQive.length === 0){
+    if(importedKeys.size === 0){ alert('Não há lançamentos importados da Qive para apagar, e a lista de controle de importação já está vazia.'); return; }
+    if(!confirm(`Não há lançamentos da Qive na tela, mas a lista de controle de importação ainda guarda ${importedKeys.size} chave(s) de importações anteriores (isso trava reimportações). Limpar essa lista agora?`)) return;
+    importedKeys = new Set();
+    await saveImportedKeys();
+    alert('Lista de controle de importação limpa. Pode reimportar a planilha.');
+    return;
+  }
+  if(!confirm(`Isso vai apagar ${daQive.length} lançamento(s) importados da Qive (e seus anexos), mantendo os criados manualmente. Também libera essas notas para serem reimportadas depois. Confirma?`)) return;
+  const btn = document.getElementById('nfts_btnApagarImportacaoQive');
+  btn.disabled = true;
+  for(let i = 0; i < daQive.length; i++){
+    btn.textContent = `Apagando ${i + 1}/${daQive.length}...`;
+    const item = daQive[i];
+    if(item.temAnexo){ try{ await excluirAnexoFirestoreNfts(item.id); }catch(e){} }
+    await sleep(60);
+  }
+  btn.textContent = 'Apagar importação Qive';
+  btn.disabled = false;
+  const idsRemover = new Set(daQive.map(e => e.id));
+  entries = entries.filter(e => !idsRemover.has(e.id));
+  idsRemover.forEach(id => excluirNotaFirestoreNfts(id));
+  importedKeys = new Set();
+  await saveImportedKeys();
+  render();
+  alert(`${daQive.length} lançamento(s) da Qive apagado(s). Lista de controle de importação limpa — pode reimportar a planilha do zero.`);
+});
+
+document.getElementById('nfts_btnApagarTudo').addEventListener('click', async ()=>{
+  if(entries.length === 0){
+    if(importedKeys.size === 0){ alert('Não há lançamentos para apagar, e a lista de controle de importação já está vazia.'); return; }
+    if(!confirm(`Não há lançamentos na tela, mas a lista de controle de importação ainda guarda ${importedKeys.size} chave(s) de importações anteriores (isso trava reimportações). Limpar essa lista agora?`)) return;
+    importedKeys = new Set();
+    await saveImportedKeys();
+    alert('Lista de controle de importação limpa. Pode reimportar do zero.');
+    return;
+  }
+  const total = entries.length;
+  if(!confirm(`Isso vai apagar TODOS os ${total} lançamento(s) de NFTS (importados e manuais) e seus anexos. Essa ação não pode ser desfeita. Confirma?`)) return;
+  const todos = entries.slice();
+  const btn = document.getElementById('nfts_btnApagarTudo');
+  btn.disabled = true;
+  for(let i = 0; i < todos.length; i++){
+    btn.textContent = `Apagando ${i + 1}/${todos.length}...`;
+    const item = todos[i];
+    if(item.temAnexo){ try{ await excluirAnexoFirestoreNfts(item.id); }catch(e){} }
+    await sleep(60);
+  }
+  btn.textContent = 'Apagar todos os lançamentos';
+  btn.disabled = false;
+  entries = [];
+  todos.forEach(item => excluirNotaFirestoreNfts(item.id));
+  importedKeys = new Set();
+  await saveImportedKeys();
+  render();
+  alert(`${total} lançamento(s) apagado(s). Lista de controle de importação limpa — pode reimportar do zero.`);
+});
 
 document.getElementById('nfts_btnRemoverDuplicados').addEventListener('click', async ()=>{
   const grupos = new Map();
