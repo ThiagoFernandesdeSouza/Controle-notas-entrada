@@ -761,6 +761,17 @@
             </select>
           </div>
         </div>
+        <div class="fs-row" id="fsRow-fCancelada">
+          <span class="fs-icon" style="background:#6B7280;">CA</span>
+          <div class="fs-control">
+            <label for="fCancelada">Cancelada?</label>
+            <select id="fCancelada">
+              <option value="">Todas</option>
+              <option value="sim">Só canceladas</option>
+              <option value="nao">Só normais (não canceladas)</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div class="fs-section">
@@ -3798,6 +3809,7 @@ function getFiltered(){
   const emp = document.getElementById('fEmpreendimento').value;
   const status = document.getElementById('fStatus').value;
   const retencao = document.getElementById('fRetencao').value;
+  const canceladaFiltro = document.getElementById('fCancelada').value;
   const dataCampo = document.getElementById('fDataCampo').value;
   const dataDe = document.getElementById('nfts_fDataDe').value;
   const dataAte = document.getElementById('nfts_fDataAte').value;
@@ -3814,6 +3826,8 @@ function getFiltered(){
     if(busca && !e.prestador.toLowerCase().includes(busca)) return false;
     if(emp && e.empreendimento !== emp) return false;
     if(retencao && e.retencao !== retencao) return false;
+    if(canceladaFiltro === 'sim' && e.status !== 'cancelada') return false;
+    if(canceladaFiltro === 'nao' && e.status === 'cancelada') return false;
     const empLabelAtual = e.empreendimento === 'Outro' && e.empreendimentoOutro ? e.empreendimentoOutro : e.empreendimento;
     if(fPrestador.size && !fPrestador.has(e.prestador)) return false;
     if(fEmp2.size && !fEmp2.has(empLabelAtual)) return false;
@@ -4067,6 +4081,7 @@ document.getElementById('nfts_btnLimpar').addEventListener('click', ()=>{
   document.getElementById('fEmpreendimento').value='';
   document.getElementById('fStatus').value='';
   document.getElementById('fRetencao').value='';
+  document.getElementById('fCancelada').value='';
   document.getElementById('fDataCampo').value='dataServico';
   document.getElementById('nfts_fDataDe').value='';
   document.getElementById('nfts_fDataAte').value='';
@@ -4102,6 +4117,7 @@ document.getElementById('fBusca').addEventListener('input', render);
 document.getElementById('fEmpreendimento').addEventListener('change', render);
 document.getElementById('fStatus').addEventListener('change', render);
 document.getElementById('fRetencao').addEventListener('change', render);
+document.getElementById('fCancelada').addEventListener('change', render);
 document.getElementById('fDataCampo').addEventListener('change', render);
 document.getElementById('nfts_fDataDe').addEventListener('change', render);
 document.getElementById('nfts_fDataAte').addEventListener('change', render);
