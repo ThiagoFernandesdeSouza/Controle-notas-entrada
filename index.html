@@ -3585,18 +3585,29 @@ async function loadEntries(){
   }, err=>{ console.error('Erro ao sincronizar notas NFTS', err); });
 }
 
+function sanitizarParaFirestoreNfts(obj){
+  const limpo = {};
+  Object.keys(obj).forEach(k=>{ limpo[k] = (obj[k] === undefined) ? '' : obj[k]; });
+  return limpo;
+}
+
 async function saveEntries(){
   await firebaseProntoPromise;
   const lista = entries.slice(); // cópia fixa: evita que o listener em tempo real (onSnapshot),
                                   // ao reagir a cada lote gravado, corte o loop pela metade
-  try{
-    for(let inicio = 0; inicio < lista.length; inicio += 450){
+  let salvos = 0;
+  for(let inicio = 0; inicio < lista.length; inicio += 450){
+    const lote = lista.slice(inicio, inicio + 450);
+    try{
       const batch = db.batch();
-      lista.slice(inicio, inicio + 450).forEach(e=>{ batch.set(db.collection(NFTS_COLLECTION).doc(e.id), e); });
+      lote.forEach(e=>{ batch.set(db.collection(NFTS_COLLECTION).doc(e.id), sanitizarParaFirestoreNfts(e)); });
       await batch.commit();
+      salvos += lote.length;
+    }catch(e){
+      console.error('Falha ao salvar lote', inicio, e);
+      alert(`Só consegui salvar ${salvos} de ${lista.length} lançamento(s) — o lote seguinte falhou (${e.message || e}). Recarregue com cuidado e me avise pra eu investigar antes de reimportar.`);
+      return;
     }
-  }catch(e){
-    console.error('Falha ao salvar', e);
   }
 }
 
