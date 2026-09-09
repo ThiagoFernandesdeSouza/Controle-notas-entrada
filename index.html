@@ -949,6 +949,10 @@
           <label for="nfts_dataEmissao">Data de emissão da NFTS</label>
           <input type="date" id="nfts_dataEmissao">
         </div>
+        <div id="numeroNftsWrap" style="display:none;">
+          <label for="nfts_numeroNfts">Número da NFTS emitida</label>
+          <input type="text" id="nfts_numeroNfts" placeholder="ex: 415">
+        </div>
 
         <div class="full">
           <label for="nfts_observacoes">Observações</label>
@@ -2424,7 +2428,7 @@ document.getElementById('entryForm').addEventListener('submit', async (ev)=>{
     anexoNome
   };
   const idx = entries.findIndex(e=>e.id===id);
-  if(idx >= 0) entries[idx] = entry; else entries.push(entry);
+  if(idx >= 0) entries[idx] = {...entries[idx], ...entry}; else entries.push(entry);
   saveEntries();
 
   if(pendingAnexoBase64){
@@ -3908,7 +3912,7 @@ function renderTable(list){
       <td>${e.retencao === 'sim' ? 'Sim' : 'Não'}</td>
       <td class="num-col">${fmtMoney(e.valor)}</td>
       <td class="num-col">${fmtDate(s.prazo)}</td>
-      <td><span class="badge ${badgeClass}">${s.label}</span></td>
+      <td><span class="badge ${badgeClass}">${s.label}</span>${e.status === 'emitida' && e.numeroNfts ? `<div class="sub">Nº NFTS ${escapeHtml(e.numeroNfts)}</div>` : ''}</td>
       <td>
         <div class="row-actions">
           ${e.temAnexo ? `<button class="icon-btn" data-action="ver-anexo" data-id="${e.id}">PDF</button>
@@ -4029,6 +4033,7 @@ function openModal(id){
   document.getElementById('err-dataServico').textContent='';
   document.getElementById('outroWrap').style.display='none';
   document.getElementById('dataEmissaoWrap').style.display='none';
+  document.getElementById('numeroNftsWrap').style.display='none';
   document.getElementById('nfts_aliquotaWrap').style.display='none';
   document.getElementById('nfts_valorRetidoPreview').style.display='none';
   pendingAnexoBase64 = undefined;
@@ -4052,9 +4057,13 @@ function openModal(id){
     if(e.retencao === 'sim') document.getElementById('nfts_aliquotaWrap').style.display='block';
     document.querySelector(`input[name="status"][value="${e.status}"]`).checked = true;
     document.getElementById('nfts_dataEmissao').value = e.dataEmissao || '';
+    document.getElementById('nfts_numeroNfts').value = e.numeroNfts || '';
     document.getElementById('nfts_observacoes').value = e.observacoes || '';
     if(e.empreendimento === 'Outro') document.getElementById('outroWrap').style.display='block';
-    if(e.status === 'emitida') document.getElementById('dataEmissaoWrap').style.display='block';
+    if(e.status === 'emitida'){
+      document.getElementById('dataEmissaoWrap').style.display='block';
+      document.getElementById('numeroNftsWrap').style.display='block';
+    }
     atualizarPreviewValorRetido();
     if(e.temAnexo){
       document.getElementById('nfts_anexoStatus').textContent = `Anexado: ${e.anexoNome || 'arquivo.pdf'}`;
@@ -4104,7 +4113,8 @@ document.getElementById('nfts_btnExportarExcel').addEventListener('click', ()=>{
       'Retenção ISS': e.retencao === 'sim' ? 'Retido' : 'Não retido',
       'Valor': Number(e.valor) || 0,
       'Prazo NFTS': fmtDate(s.prazo.toISOString().slice(0,10)),
-      'Situação': s.label
+      'Situação': s.label,
+      'Nº NFTS (se emitida)': e.numeroNfts || ''
     };
   });
   const ws = XLSX.utils.json_to_sheet(linhas);
@@ -4154,6 +4164,7 @@ document.querySelectorAll('input[name="status"]').forEach(r=>{
   r.addEventListener('change', (ev)=>{
     const isEmitida = ev.target.value === 'emitida';
     document.getElementById('dataEmissaoWrap').style.display = isEmitida ? 'block' : 'none';
+    document.getElementById('numeroNftsWrap').style.display = isEmitida ? 'block' : 'none';
     if(isEmitida){
       const campoData = document.getElementById('nfts_dataEmissao');
       if(!campoData.value) campoData.value = new Date().toISOString().slice(0,10);
@@ -4243,13 +4254,14 @@ document.getElementById('nfts_entryForm').addEventListener('submit', async (ev)=
     aliquotaIss: document.querySelector('input[name="retencao"]:checked').value === 'sim' ? (document.getElementById('nfts_aliquotaIss').value || '') : '',
     status: document.querySelector('input[name="status"]:checked').value,
     dataEmissao: document.getElementById('nfts_dataEmissao').value || '',
+    numeroNfts: document.getElementById('nfts_numeroNfts').value.trim(),
     observacoes: document.getElementById('nfts_observacoes').value.trim(),
     temAnexo,
     anexoNome
   };
 
   const idx = entries.findIndex(e=>e.id === id);
-  if(idx >= 0) entries[idx] = entry;
+  if(idx >= 0) entries[idx] = {...entries[idx], ...entry};
   else entries.push(entry);
 
   saveEntries();
@@ -6565,7 +6577,7 @@ document.getElementById('st_entryForm').addEventListener('submit', async (ev)=>{
     anexoNome
   };
   const idx = entries.findIndex(e=>e.id===id);
-  if(idx >= 0) entries[idx] = entry; else entries.push(entry);
+  if(idx >= 0) entries[idx] = {...entries[idx], ...entry}; else entries.push(entry);
   saveEntries();
 
   if(pendingAnexoBase64){
