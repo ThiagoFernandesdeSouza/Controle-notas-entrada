@@ -699,19 +699,41 @@
   <div class="content-layout">
     <aside class="filter-sidebar">
       <div class="fs-section">
-        <p class="fs-section-title">BUSCA</p>
+        <p class="fs-section-title">IDENTIFICAÇÃO</p>
         <div class="fs-row" id="fsRow-fBusca">
           <span class="fs-icon" style="background:#2E5266;">PR</span>
           <div class="fs-control"><label for="fBusca">Prestador</label><input type="text" id="fBusca" placeholder="Buscar por nome"></div>
         </div>
-      </div>
-
-      <div class="fs-section">
-        <p class="fs-section-title">CLASSIFICAÇÃO</p>
         <div class="fs-row" id="fsRow-fEmpreendimento">
           <span class="fs-icon" style="background:#3A8FA3;">EP</span>
           <div class="fs-control"><label for="fEmpreendimento">Empreendimento</label><select id="fEmpreendimento"><option value="">Todos</option></select></div>
         </div>
+      </div>
+
+      <div class="fs-section">
+        <p class="fs-section-title">PERÍODO</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#8E6BAF;">PP</span>
+          <div class="fs-control">
+            <label for="fDataCampo">Período por</label>
+            <select id="fDataCampo">
+              <option value="dataServico">Data de prestação</option>
+              <option value="dataEmissao">Data de emissão</option>
+              <option value="prazo">Prazo NFTS</option>
+            </select>
+          </div>
+        </div>
+        <div class="fs-row" id="fsRow-nfts_fDataDe">
+          <span class="fs-icon" style="background:#4B7A3E;">DT</span>
+          <div class="fs-control">
+            <label>De / até</label>
+            <div class="fs-range"><input type="date" id="nfts_fDataDe"><input type="date" id="nfts_fDataAte"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fs-section">
+        <p class="fs-section-title">STATUS</p>
         <div class="fs-row" id="fsRow-fStatus">
           <span class="fs-icon" style="background:#A23E3E;">SI</span>
           <div class="fs-control">
@@ -742,23 +764,31 @@
       </div>
 
       <div class="fs-section">
-        <p class="fs-section-title">PERÍODO</p>
+        <p class="fs-section-title">VALORES</p>
         <div class="fs-row">
-          <span class="fs-icon" style="background:#8E6BAF;">PP</span>
+          <span class="fs-icon" style="background:#2F6E5E;">VL</span>
           <div class="fs-control">
-            <label for="fDataCampo">Período por</label>
-            <select id="fDataCampo">
-              <option value="dataServico">Data de prestação</option>
-              <option value="dataEmissao">Data de emissão</option>
-              <option value="prazo">Prazo NFTS</option>
-            </select>
+            <label>Valor de / até (R$)</label>
+            <div class="fs-range"><input type="number" step="0.01" id="nfts_fValorDe"><input type="number" step="0.01" id="nfts_fValorAte"></div>
           </div>
         </div>
-        <div class="fs-row" id="fsRow-nfts_fDataDe">
-          <span class="fs-icon" style="background:#4B7A3E;">DT</span>
+      </div>
+
+      <div class="fs-section">
+        <p class="fs-section-title">ORDENAÇÃO</p>
+        <div class="fs-row">
+          <span class="fs-icon" style="background:#3A8FA3;">OR</span>
           <div class="fs-control">
-            <label>De / até</label>
-            <div class="fs-range"><input type="date" id="nfts_fDataDe"><input type="date" id="nfts_fDataAte"></div>
+            <label for="nfts_fOrdenar">Ordenar por</label>
+            <select id="nfts_fOrdenar">
+              <option value="situacao">Situação (padrão — atrasadas primeiro)</option>
+              <option value="prestacao_desc">Prestação (mais recente)</option>
+              <option value="prestacao_asc">Prestação (mais antiga)</option>
+              <option value="valor_desc">Valor (maior primeiro)</option>
+              <option value="valor_asc">Valor (menor primeiro)</option>
+              <option value="prestador_asc">Prestador (A-Z)</option>
+              <option value="prestador_desc">Prestador (Z-A)</option>
+            </select>
           </div>
         </div>
       </div>
@@ -3771,11 +3801,14 @@ function getFiltered(){
   const dataCampo = document.getElementById('fDataCampo').value;
   const dataDe = document.getElementById('nfts_fDataDe').value;
   const dataAte = document.getElementById('nfts_fDataAte').value;
+  const valorDe = document.getElementById('nfts_fValorDe').value;
+  const valorAte = document.getElementById('nfts_fValorAte').value;
   const fPrestador = filtroSelecionadosNfts.prestador;
   const fEmp2 = filtroSelecionadosNfts.empreendimento;
   const fDataServico = filtroSelecionadosNfts.dataServico;
   const fDataEmissao = filtroSelecionadosNfts.dataEmissao;
   const fRetencao2 = filtroSelecionadosNfts.retencao;
+  const fSituacao = filtroSelecionadosNfts.situacao;
 
   return entries.filter(e=>{
     if(busca && !e.prestador.toLowerCase().includes(busca)) return false;
@@ -3787,6 +3820,7 @@ function getFiltered(){
     if(fDataServico.size && !fDataServico.has(e.dataServico)) return false;
     if(fDataEmissao.size && !fDataEmissao.has(e.dataEmissao)) return false;
     if(fRetencao2.size && !fRetencao2.has(e.retencao)) return false;
+    if(fSituacao.size && !fSituacao.has(getSituacao(e).key)) return false;
     if(status){
       const s = getSituacao(e);
       if(status === 'nao_cancelada' && e.status === 'cancelada') return false;
@@ -3806,11 +3840,20 @@ function getFiltered(){
       if(dataDe && valorData < dataDe) return false;
       if(dataAte && valorData > dataAte) return false;
     }
+    if(valorDe && Number(e.valor) < Number(valorDe)) return false;
+    if(valorAte && Number(e.valor) > Number(valorAte)) return false;
     return true;
   });
 }
 
 function sortEntries(list){
+  const modo = document.getElementById('nfts_fOrdenar') ? document.getElementById('nfts_fOrdenar').value : 'situacao';
+  if(modo === 'prestacao_desc') return [...list].sort((a,b)=> (b.dataServico||'').localeCompare(a.dataServico||''));
+  if(modo === 'prestacao_asc') return [...list].sort((a,b)=> (a.dataServico||'').localeCompare(b.dataServico||''));
+  if(modo === 'valor_desc') return [...list].sort((a,b)=> (Number(b.valor)||0) - (Number(a.valor)||0));
+  if(modo === 'valor_asc') return [...list].sort((a,b)=> (Number(a.valor)||0) - (Number(b.valor)||0));
+  if(modo === 'prestador_asc') return [...list].sort((a,b)=> (a.prestador||'').localeCompare(b.prestador||'','pt-BR'));
+  if(modo === 'prestador_desc') return [...list].sort((a,b)=> (b.prestador||'').localeCompare(a.prestador||'','pt-BR'));
   const order = {atrasada:0, critico:1, soon:2, ok:3, emitida:4, cancelada:5};
   return [...list].sort((a,b)=>{
     const sa = getSituacao(a), sb = getSituacao(b);
@@ -3873,7 +3916,7 @@ function renderTable(list){
         <th>Retenção ISS <button type="button" class="xf-btn" data-compact="1" data-campo="retencao" style="all:unset;cursor:pointer;">▾</button></th>
         <th>Valor</th>
         <th>Prazo NFTS</th>
-        <th>Situação <button type="button" class="th-jump-btn" data-jump="fStatus" title="Filtrar por situação">▾</button></th>
+        <th>Situação <button type="button" class="xf-btn" data-compact="1" data-campo="situacao" style="all:unset;cursor:pointer;">▾</button></th>
         <th></th>
       </tr>
     </thead>
@@ -4027,6 +4070,9 @@ document.getElementById('nfts_btnLimpar').addEventListener('click', ()=>{
   document.getElementById('fDataCampo').value='dataServico';
   document.getElementById('nfts_fDataDe').value='';
   document.getElementById('nfts_fDataAte').value='';
+  document.getElementById('nfts_fValorDe').value='';
+  document.getElementById('nfts_fValorAte').value='';
+  document.getElementById('nfts_fOrdenar').value='situacao';
   Object.keys(filtroSelecionadosNfts).forEach(k => filtroSelecionadosNfts[k] = new Set());
   render();
 });
@@ -4059,6 +4105,9 @@ document.getElementById('fRetencao').addEventListener('change', render);
 document.getElementById('fDataCampo').addEventListener('change', render);
 document.getElementById('nfts_fDataDe').addEventListener('change', render);
 document.getElementById('nfts_fDataAte').addEventListener('change', render);
+document.getElementById('nfts_fValorDe').addEventListener('input', render);
+document.getElementById('nfts_fValorAte').addEventListener('input', render);
+document.getElementById('nfts_fOrdenar').addEventListener('change', render);
 
 document.getElementById('empreendimento').addEventListener('change', (ev)=>{
   document.getElementById('outroWrap').style.display = ev.target.value === 'Outro' ? 'block' : 'none';
@@ -4205,7 +4254,8 @@ let importHeaders = [];
 let previewRows = [];
 let importedKeys = new Set();
 
-const filtroSelecionadosNfts = { prestador: new Set(), empreendimento: new Set(), dataServico: new Set(), dataEmissao: new Set(), retencao: new Set() };
+const filtroSelecionadosNfts = { prestador: new Set(), empreendimento: new Set(), dataServico: new Set(), dataEmissao: new Set(), retencao: new Set(), situacao: new Set() };
+const SITUACAO_LABELS_NFTS = { atrasada: 'Atrasada', critico: 'Crítico (≤3 dias)', soon: 'Vence em breve (4-7 dias)', ok: 'Em dia', emitida: 'Emitida', cancelada: 'Cancelada' };
 const CAMPO_LABELS_NFTS = { prestador: 'Prestador', empreendimento: 'Empreendimento', dataServico: 'Prestação', dataEmissao: 'Emissão', retencao: 'Retenção ISS' };
 
 function campoOpcoesNfts(campo){
@@ -4214,6 +4264,7 @@ function campoOpcoesNfts(campo){
   if(campo === 'dataServico') return [...new Set(entries.map(e => e.dataServico).filter(Boolean))].sort().map(v=>({value:v, label:fmtDate(v)}));
   if(campo === 'dataEmissao') return [...new Set(entries.map(e => e.dataEmissao).filter(Boolean))].sort().map(v=>({value:v, label:fmtDate(v)}));
   if(campo === 'retencao') return [{value:'sim', label:'Sim'}, {value:'nao', label:'Não'}];
+  if(campo === 'situacao') return Object.keys(SITUACAO_LABELS_NFTS).map(v=>({value:v, label:SITUACAO_LABELS_NFTS[v]}));
   return [];
 }
 
